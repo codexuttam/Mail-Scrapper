@@ -10,3 +10,58 @@ html, body, #__next {
 .card {
   @apply bg-white p-4 rounded shadow-sm;
 }
+
+/* UI polish */
+.brand-gradient {
+  background: linear-gradient(90deg,#0ea5e9,#7c3aed);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.btn {
+  @apply inline-flex items-center gap-2 px-4 py-2 rounded shadow-sm font-medium transition-colors;
+}
+
+.btn-primary {
+  @apply bg-sky-600 text-white;
+}
+
+.btn-primary:hover {
+  @apply bg-sky-700;
+}
+
+.btn-accent {
+  @apply bg-emerald-600 text-white;
+}
+
+.btn-accent:hover {
+  @apply bg-emerald-700;
+}
+
+.btn-ghost {
+  @apply bg-white border border-slate-200;
+}
+
+.btn-ghost:hover {
+  @apply shadow-md;
+}
+
+.card-hover {
+  @apply transition-transform transform;
+}
+
+.card-hover:hover {
+  @apply -translate-y-1 shadow-md;
+}
+
+.badge {
+  @apply inline-block text-xs font-semibold px-2 py-1 rounded-full;
+}
+
+.badge-sent {
+  @apply bg-emerald-100 text-emerald-800;
+}
+
+.badge-new {
+  @apply bg-sky-100 text-sky-800;
+}

@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
-import connect from '@/lib/db';
-import Lead from '@/models/Lead';
+import connect from '../../../lib/db';
+import Lead from '../../../models/Lead';
 
 export async function GET(req) {
   try {
@@ -38,6 +38,19 @@ export async function PATCH(req) {
     return NextResponse.json({ lead });
   } catch (err) {
     console.error('leads PATCH error', err);
+    return NextResponse.json({ error: String(err) }, { status: 500 });
+  }
+}
+
+export async function DELETE(req) {
+  try {
+    const { id } = await req.json();
+    if (!id) return NextResponse.json({ error: 'Missing lead id' }, { status: 400 });
+    await connect();
+    await Lead.findByIdAndDelete(id);
+    return NextResponse.json({ ok: true });
+  } catch (err) {
+    console.error('leads DELETE error', err);
     return NextResponse.json({ error: String(err) }, { status: 500 });
   }
 }

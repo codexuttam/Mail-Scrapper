@@ -1,0 +1,25 @@
+nohup: ignoring input
+
+> auto-client-finder@0.1.0 dev
+> next dev
+
+  ▲ Next.js 14.2.35
+  - Local:        http://localhost:3000
+  - Environments: .env.local
+
+ ✓ Starting...
+ ✓ Ready in 1430ms
+ ○ Compiling /api/places-search ...
+ ✓ Compiled /api/places-search in 508ms (56 modules)
+ GET /api/places-search?q=cafe+in+seattle 400 in 580ms
+ ✓ Compiled /api/leads in 135ms (59 modules)
+ POST /api/leads 200 in 1371ms
+ POST /api/leads 200 in 45ms
+ POST /api/leads 200 in 46ms
+ POST /api/leads 200 in 43ms
+ ○ Compiling /api/send-email ...
+ ✓ Compiled /api/send-email in 537ms (111 modules)
+ POST /api/send-email 200 in 5294ms
+ POST /api/send-email 200 in 2991ms
+ POST /api/send-email 200 in 3047ms
+ POST /api/send-email 200 in 3302ms

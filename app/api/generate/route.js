@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
-import { generateOutreach } from '@/lib/openai';
-import connect from '@/lib/db';
-import Lead from '@/models/Lead';
+import { generateOutreach } from '../../../lib/openai';
+import connect from '../../../lib/db';
+import Lead from '../../../models/Lead';
 
 export async function POST(req) {
   try {
