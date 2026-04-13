@@ -1,5 +1,7 @@
 # Auto Client Finder + Outreach Engine — Backend Starter
 
+![CI](https://github.com/codexuttam/Mail-Scrapper/actions/workflows/ci.yml/badge.svg)
+
 This repo is a starter skeleton for the "Auto Client Finder + Outreach Engine" backend using Next.js (App Router), MongoDB, Puppeteer (scraping) and OpenAI (message generation).
 
 What's included
