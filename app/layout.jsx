@@ -1,26 +1,71 @@
 import './globals.css'
+import Link from 'next/link'
+import { LayoutDashboard, Search, Mail, Settings, Zap } from 'lucide-react'
+import Header from '../components/Header'
 
 export const metadata = {
   title: 'Auto Client Finder',
-  description: 'Find local businesses and generate outreach messages',
+  description: 'AI-Powered Lead Generation & Outreach',
 }
 
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
-      <body className="bg-slate-50 text-slate-900">
-        <div className="max-w-6xl mx-auto p-6">
-          <header className="flex items-center justify-between mb-6">
-            <div>
-              <h1 className="text-2xl font-extrabold"> <span className="brand-gradient">Auto Client Finder</span></h1>
-              <div className="text-sm text-slate-600">Find local businesses, generate outreach and send emails — faster.</div>
+      <body className="bg-slate-50 text-slate-900 font-sans selection:bg-indigo-100 selection:text-indigo-900">
+        <div className="flex min-h-screen">
+          {/* Sidebar */}
+          <aside className="w-64 border-r bg-white flex flex-col hidden md:flex sticky top-0 h-screen">
+            <div className="p-6">
+              <div className="flex items-center gap-2 mb-8">
+                <div className="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center text-white">
+                  <Zap size={20} fill="currentColor" />
+                </div>
+                <h1 className="text-xl font-bold tracking-tight">Auto<span className="text-indigo-600">Client</span></h1>
+              </div>
+              
+              <nav className="space-y-1">
+                <Link href="/" className="nav-link">
+                  <Search size={18} />
+                  <span>Find Leads</span>
+                </Link>
+                <Link href="/dashboard" className="nav-link">
+                  <LayoutDashboard size={18} />
+                  <span>Dashboard</span>
+                </Link>
+                <Link href="/outreach" className="nav-link">
+                  <Mail size={18} />
+                  <span>Outreach</span>
+                </Link>
+                <Link href="/settings" className="nav-link">
+                  <Settings size={18} />
+                  <span>Settings</span>
+                </Link>
+              </nav>
             </div>
-            <nav className="space-x-4">
-              <a href="/" className="text-sky-600 hover:underline">Find</a>
-              <a href="/dashboard" className="text-sky-600 hover:underline">Dashboard</a>
-            </nav>
-          </header>
-          <main>{children}</main>
+            
+            <div className="mt-auto p-6">
+              <div className="bg-slate-50 rounded-xl p-4 border border-slate-100 flex items-center gap-3">
+                <div className="p-2 bg-indigo-100 text-indigo-600 rounded-lg">
+                   <Zap size={16} fill="currentColor" />
+                </div>
+                <div>
+                  <p className="text-xs font-bold text-slate-500 uppercase">System Status</p>
+                  <p className="text-xs font-medium text-emerald-600">All services online</p>
+                </div>
+              </div>
+            </div>
+          </aside>
+
+          {/* Main Content */}
+          <div className="flex-1 flex flex-col min-h-screen">
+            <Header />
+
+            <main className="flex-1 p-8 bg-slate-50/50">
+              <div className="max-w-5xl mx-auto animate-in">
+                {children}
+              </div>
+            </main>
+          </div>
         </div>
       </body>
     </html>
