@@ -20,6 +20,7 @@ export async function GET(req) {
 export async function POST(req) {
   try {
     const body = await req.json();
+    if (!body.name) delete body.name; // Use schema default if name is missing or empty
     await connect();
     const lead = await Lead.create(body);
     return NextResponse.json({ lead });

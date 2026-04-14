@@ -1,7 +1,8 @@
 import mongoose from 'mongoose';
 
 const LeadSchema = new mongoose.Schema({
-  name: { type: String, required: true },
+  name: { type: String, default: 'Unnamed Business' },
+  email: { type: String },
   phone: { type: String },
   address: { type: String },
   website: { type: String },
@@ -9,7 +10,11 @@ const LeadSchema = new mongoose.Schema({
   type: { type: String },
   status: { type: String, default: 'new' },
   message: { type: String },
+  lastSentAt: { type: Date },
   createdAt: { type: Date, default: Date.now }
 });
 
-export default mongoose.models.Lead || mongoose.model('Lead', LeadSchema);
+if (mongoose.models.Lead) {
+  delete mongoose.models.Lead;
+}
+export default mongoose.model('Lead', LeadSchema);

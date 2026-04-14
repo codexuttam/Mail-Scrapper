@@ -18,6 +18,7 @@ export async function POST(req) {
         const filter = { name: item.name || '', address: item.address || '' };
         const update = {
           name: item.name || 'Unknown',
+          email: (item.emails && item.emails.length > 0) ? item.emails[0] : '',
           phone: item.phone || '',
           address: item.address || '',
           website: item.link || '',
