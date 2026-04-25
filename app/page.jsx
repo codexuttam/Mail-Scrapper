@@ -6,11 +6,15 @@ export default function Page() {
     <div className="space-y-10">
       {/* Hero Section */}
       <section className="relative overflow-hidden rounded-3xl bg-indigo-600 p-12 text-white shadow-2xl">
-        <div className="relative z-10 max-w-2xl">
-          <h2 className="text-4xl md:text-5xl font-extrabold tracking-tight mb-4 leading-tight">
+        <div className="flex-1 space-y-8">
+          <div className="inline-flex items-center gap-3 bg-white/10 backdrop-blur-md px-4 py-2 rounded-2xl border border-white/20 mb-4 animate-in slide-in-from-bottom duration-700">
+            <img src="/logo.png" alt="AutoClient" className="w-8 h-8 object-contain" />
+            <span className="text-white text-sm font-black tracking-widest uppercase">AutoClient AI</span>
+          </div>
+          <h1 className="text-5xl md:text-7xl font-black text-white leading-tight tracking-tight">
             Find and convert your <br />
             <span className="text-indigo-200">perfect clients</span> today.
-          </h2>
+          </h1>
           <p className="text-lg text-indigo-100 mb-8 opacity-90 max-w-lg">
             Powerful tools to scrape local business data, generate personalized AI outreach, and manage your sales pipeline in one place.
           </p>
@@ -18,8 +22,8 @@ export default function Page() {
             <Link href="/find" className="bg-white text-indigo-600 px-6 py-3 rounded-xl font-bold flex items-center gap-2 hover:bg-indigo-50 transition-all hover:scale-105 active:scale-95 shadow-lg">
               Start Finding Leads <ArrowRight size={18} />
             </Link>
-            <Link href="/find" className="bg-indigo-500/30 backdrop-blur-md border border-indigo-400/30 text-white px-6 py-3 rounded-xl font-bold hover:bg-indigo-500/40 transition-all flex items-center justify-center">
-              Try It Now
+            <Link href="/how-to-use" className="bg-indigo-500/30 backdrop-blur-md border border-indigo-400/30 text-white px-6 py-3 rounded-xl font-bold hover:bg-indigo-500/40 transition-all flex items-center justify-center">
+              Explore How to Use
             </Link>
           </div>
         </div>

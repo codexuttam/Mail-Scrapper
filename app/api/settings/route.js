@@ -19,7 +19,12 @@ export async function GET() {
       fullName: session.user.name,
       email: session.user.email,
       googleMapsApiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || process.env.GOOGLE_MAPS_API_KEY || '',
-      openaiApiKey: process.env.GROQ_API_KEY || process.env.OPENAI_API_KEY || ''
+      openaiApiKey: process.env.GROQ_API_KEY || process.env.OPENAI_API_KEY || '',
+      smtpHost: process.env.SMTP_HOST || '',
+      smtpPort: process.env.SMTP_PORT || 587,
+      smtpUser: process.env.SMTP_USER || '',
+      smtpPass: process.env.SMTP_PASS || '',
+      smtpSecure: process.env.SMTP_SECURE === 'true'
     };
 
     if (!settings) {

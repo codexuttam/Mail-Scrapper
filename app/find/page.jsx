@@ -1,6 +1,6 @@
 "use client"
 import { useState, useEffect, useRef } from 'react'
-import { Search, MapPin, Phone, Globe, Save, Loader2, Compass, Layers, Filter, Zap, Info } from 'lucide-react'
+import { Search, MapPin, Phone, Globe, Save, Loader2, Compass, Layers, Filter, Zap, Info, Instagram, Facebook, MessageSquare } from 'lucide-react'
 
 function ResultRow({ item, onSave }) {
   const [isSaving, setIsSaving] = useState(false)
@@ -30,9 +30,22 @@ function ResultRow({ item, onSave }) {
             <span className="line-clamp-1">{item.address}</span>
           </div>
           <div className="flex flex-wrap gap-4 items-center mt-3">
-            <div className="flex items-center gap-1.5 text-sm font-medium text-slate-600">
-              <Phone size={14} className="text-indigo-400" />
-              {item.phone || <span className="text-slate-300">No phone</span>}
+            <div className="flex items-center gap-3 text-sm font-medium">
+              <div className="flex items-center gap-1.5 text-slate-600">
+                <Phone size={14} className="text-indigo-400" />
+                {item.phone || <span className="text-slate-300">No phone</span>}
+              </div>
+              {item.phone && (
+                <a 
+                  href={`https://wa.me/${item.phone.replace(/\D/g, '')}`} 
+                  target="_blank" 
+                  rel="noreferrer"
+                  className="p-1.5 bg-emerald-50 text-emerald-600 rounded-lg hover:bg-emerald-100 transition-colors"
+                  title="Chat on WhatsApp"
+                >
+                  <MessageSquare size={14} />
+                </a>
+              )}
             </div>
             {item.emails && item.emails.filter(e => !!e).length > 0 && (
               <div className="flex items-center gap-1.5 text-sm font-medium text-emerald-600">
@@ -43,8 +56,23 @@ function ResultRow({ item, onSave }) {
             {(item.website || item.link) && (
               <a href={item.website || item.link} target="_blank" rel="noreferrer" className="flex items-center gap-1.5 text-sm font-medium text-indigo-600 hover:underline">
                 <Globe size={14} />
-                Visit Website
+                Website
               </a>
+            )}
+            
+            {item.socials && (
+              <div className="flex items-center gap-2 border-l pl-4 border-slate-200">
+                {item.socials.instagram && (
+                  <a href={item.socials.instagram} target="_blank" rel="noreferrer" className="text-slate-400 hover:text-pink-600 transition-colors">
+                    <Instagram size={16} />
+                  </a>
+                )}
+                {item.socials.facebook && (
+                  <a href={item.socials.facebook} target="_blank" rel="noreferrer" className="text-slate-400 hover:text-blue-600 transition-colors">
+                    <Facebook size={16} />
+                  </a>
+                )}
+              </div>
             )}
           </div>
         </div>
@@ -261,6 +289,14 @@ export default function FindPage() {
 
           {loading ? (
              <div className="space-y-4">
+                <div className="bg-indigo-50 border border-indigo-100 rounded-2xl p-4 flex items-center gap-3 mb-4 animate-pulse">
+                   <Loader2 size={20} className="text-indigo-600 animate-spin" />
+                   <p className="text-sm font-bold text-indigo-700">
+                      {searchMethod === 'scrape' 
+                        ? 'Deep scraping business details & emails... this may take 15-30 seconds.' 
+                        : 'Connecting to Google Places API...'}
+                   </p>
+                </div>
                 {[1,2,3].map(i => (
                    <div key={i} className="h-32 bg-white rounded-2xl border border-slate-100 animate-pulse flex p-5 gap-4">
                       <div className="flex-1 space-y-3">
@@ -289,8 +325,8 @@ export default function FindPage() {
           )}
         </div>
 
-        <div className="order-1 lg:order-2 space-y-6">
-           <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-lg sticky top-24">
+        <div className="order-1 lg:order-2 space-y-6 lg:sticky lg:top-24 h-fit">
+           <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-lg">
               <div className="p-4 border-b bg-slate-50 flex items-center justify-between">
                  <span className="text-xs font-bold text-slate-500 uppercase flex items-center gap-2">
                    <MapPin size={12} /> Interactive Map

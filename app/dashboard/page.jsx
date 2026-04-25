@@ -2,7 +2,7 @@
 import { useEffect, useState, Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { useSession } from 'next-auth/react'
-import { Mail, Trash2, Send, Wand2, RefreshCw, CheckCircle2, AlertCircle, Calendar, MapPin, X, Zap, Loader2, Search } from 'lucide-react'
+import { Mail, Trash2, Send, Wand2, RefreshCw, CheckCircle2, AlertCircle, Calendar, MapPin, X, Zap, Loader2, Search, Instagram, MessageSquare } from 'lucide-react'
 
 function formatDate(iso) {
   try {
@@ -132,6 +132,7 @@ function DashboardContent() {
   const [modalMessage, setModalMessage] = useState('')
   
   const [notice, setNotice] = useState(null)
+  const [selectedChannel, setSelectedChannel] = useState('email')
 
   const filteredLeads = leads.filter(l => 
     l.name.toLowerCase().includes(searchQuery) || 
@@ -158,7 +159,14 @@ function DashboardContent() {
     try {
       const res = await fetch('/api/generate', {
         method: 'POST',
-        body: JSON.stringify({ name: lead.name, type: lead.type || 'business', location: lead.location || '', tone: 'friendly', leadId: lead._id }),
+        body: JSON.stringify({ 
+          name: lead.name, 
+          type: lead.type || 'business', 
+          location: lead.location || '', 
+          tone: 'friendly', 
+          leadId: lead._id,
+          channel: selectedChannel 
+        }),
         headers: { 'Content-Type': 'application/json' }
       })
       const data = await res.json()
@@ -339,6 +347,23 @@ function DashboardContent() {
                     AI Draft
                   </h3>
                   <button onClick={() => setPreviewLead(null)} className="text-indigo-300 hover:text-white transition-colors"><X size={20}/></button>
+                </div>
+
+                <div className="flex bg-white/10 rounded-xl p-1 mb-6 border border-white/5">
+                   {[
+                     { id: 'email', icon: Mail, label: 'Email' },
+                     { id: 'dm', icon: Instagram, label: 'DM' },
+                     { id: 'whatsapp', icon: MessageSquare, label: 'WhatsApp' }
+                   ].map(ch => (
+                     <button
+                       key={ch.id}
+                       onClick={() => { setSelectedChannel(ch.id); handleGenerate(previewLead); }}
+                       className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-lg text-xs font-bold transition-all ${selectedChannel === ch.id ? 'bg-white text-indigo-950 shadow-lg' : 'text-indigo-300 hover:bg-white/5'}`}
+                     >
+                       <ch.icon size={14} />
+                       {ch.label}
+                     </button>
+                   ))}
                 </div>
                 
                 <div className="bg-white/10 rounded-xl p-4 mb-6 border border-white/10">

@@ -4,7 +4,7 @@ import { useRouter } from 'next/navigation'
 import { useState, useRef, useEffect } from 'react'
 import { useSession } from 'next-auth/react'
 
-export default function Header() {
+export default function Header({ onMenuClick }) {
   const router = useRouter()
   const { data: session } = useSession()
   const [query, setQuery] = useState('')
@@ -62,12 +62,17 @@ export default function Header() {
 
   return (
     <header className="h-16 border-b bg-white/80 backdrop-blur-md flex items-center justify-between px-8 sticky top-0 z-50">
-      <div className="md:hidden flex items-center gap-2">
-        <Menu size={24} className="text-slate-600" />
-        <span className="font-bold text-indigo-950">AutoClient</span>
+      <div className="lg:hidden flex items-center gap-3">
+        <button onClick={onMenuClick} className="p-2 hover:bg-slate-100 rounded-lg text-slate-600">
+          <Menu size={24} />
+        </button>
+        <div className="flex items-center gap-2">
+           <img src="/logo.png" alt="Logo" className="w-8 h-8 object-contain" />
+           <span className="font-black text-indigo-950">AutoClient</span>
+        </div>
       </div>
       
-      <div className="hidden md:flex flex-1 items-center max-w-sm group">
+      <div className="hidden lg:flex flex-1 items-center max-w-sm group">
         <div className="relative w-full">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 group-hover:text-indigo-500 transition-colors" size={16} />
           <input 

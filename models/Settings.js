@@ -9,6 +9,11 @@ const SettingsSchema = new mongoose.Schema({
   leadAlerts: { type: Boolean, default: true },
   outreachAlerts: { type: Boolean, default: true },
   milestoneAlerts: { type: Boolean, default: true },
+  smtpHost: { type: String },
+  smtpPort: { type: Number, default: 587 },
+  smtpUser: { type: String },
+  smtpPass: { type: String },
+  smtpSecure: { type: Boolean, default: false },
   updatedAt: { type: Date, default: Date.now }
 });
 

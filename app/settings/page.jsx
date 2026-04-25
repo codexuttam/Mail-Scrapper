@@ -1,7 +1,7 @@
 "use client"
 import { useState, useEffect } from 'react'
 import { useSession } from 'next-auth/react'
-import { Settings as SettingsIcon, User, Bell, Shield, Key, Mail, Save, Zap, CheckCircle2, Globe, Lock } from 'lucide-react'
+import { Settings as SettingsIcon, User, Bell, Shield, Key, Mail, Save, Zap, CheckCircle2, Globe, Lock, Eye, EyeOff, Server, Terminal, ShieldCheck } from 'lucide-react'
 
 export default function SettingsPage() {
   const { data: session } = useSession()
@@ -15,8 +15,14 @@ export default function SettingsPage() {
     openaiApiKey: '',
     leadAlerts: true,
     outreachAlerts: true,
-    milestoneAlerts: true
+    milestoneAlerts: true,
+    smtpHost: '',
+    smtpPort: 587,
+    smtpUser: '',
+    smtpPass: '',
+    smtpSecure: false
   })
+  const [showKeys, setShowKeys] = useState(false)
 
   useEffect(() => {
     async function fetchSettings() {
@@ -31,7 +37,12 @@ export default function SettingsPage() {
             openaiApiKey: data.settings.openaiApiKey || '',
             leadAlerts: data.settings.leadAlerts ?? true,
             outreachAlerts: data.settings.outreachAlerts ?? true,
-            milestoneAlerts: data.settings.milestoneAlerts ?? true
+            milestoneAlerts: data.settings.milestoneAlerts ?? true,
+            smtpHost: data.settings.smtpHost || '',
+            smtpPort: data.settings.smtpPort || 587,
+            smtpUser: data.settings.smtpUser || '',
+            smtpPass: data.settings.smtpPass || '',
+            smtpSecure: data.settings.smtpSecure ?? false
           })
         }
       } catch (err) {
@@ -190,20 +201,33 @@ export default function SettingsPage() {
           )}
 
           {activeTab === 'api' && (
-            <form onSubmit={handleSave} className="animate-in slide-in-from-right-4 duration-300">
+            <form onSubmit={handleSave} className="animate-in slide-in-from-right-4 duration-300 space-y-6">
               <div className="glass-card p-6 space-y-6">
                 <div className="space-y-4">
                   <div className="flex items-center justify-between border-b pb-2">
-                    <h3 className="font-bold text-lg text-slate-900">API Integrations</h3>
-                    <span className="text-[10px] font-bold bg-amber-50 text-amber-600 px-2 py-0.5 rounded border border-amber-100 uppercase tracking-tighter text-center">Required for Core Features</span>
+                    <h3 className="font-bold text-lg text-slate-900 flex items-center gap-2">
+                       <Terminal size={20} className="text-indigo-600" />
+                       API Keys
+                    </h3>
+                    <button 
+                      type="button"
+                      onClick={() => setShowKeys(!showKeys)}
+                      className="text-xs font-bold text-slate-500 flex items-center gap-1.5 hover:text-indigo-600 transition-colors"
+                    >
+                      {showKeys ? <EyeOff size={14} /> : <Eye size={14} />}
+                      {showKeys ? 'Hide Keys' : 'Show Keys'}
+                    </button>
                   </div>
                   
                   <div className="space-y-2">
-                    <label className="text-xs font-bold text-slate-500 uppercase">Google Maps API Key</label>
+                    <div className="flex justify-between items-center">
+                       <label className="text-xs font-bold text-slate-500 uppercase">Google Maps API Key</label>
+                       {formData.googleMapsApiKey && <span className="text-[10px] text-emerald-600 font-black flex items-center gap-1"><ShieldCheck size={12} /> Active</span>}
+                    </div>
                     <div className="relative">
                       <Globe className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
                       <input 
-                        type="password" 
+                        type={showKeys ? "text" : "password"} 
                         name="googleMapsApiKey"
                         placeholder="AIza..." 
                         value={formData.googleMapsApiKey}
@@ -211,36 +235,97 @@ export default function SettingsPage() {
                         className="input-modern pl-10" 
                       />
                     </div>
-                    <p className="text-[10px] text-slate-400 mt-1">Required for "Google Places" search and interactive maps.</p>
                   </div>
 
                   <div className="space-y-2 pt-2">
-                    <label className="text-xs font-bold text-slate-500 uppercase">OpenAI API Key</label>
+                    <div className="flex justify-between items-center">
+                       <label className="text-xs font-bold text-slate-500 uppercase">OpenAI / Groq API Key</label>
+                       {formData.openaiApiKey && <span className="text-[10px] text-emerald-600 font-black flex items-center gap-1"><ShieldCheck size={12} /> Active</span>}
+                    </div>
                     <div className="relative">
                       <Zap className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
                       <input 
-                        type="password" 
+                        type={showKeys ? "text" : "password"} 
                         name="openaiApiKey"
-                        placeholder="sk-..." 
+                        placeholder="gsk_..." 
                         value={formData.openaiApiKey}
                         onChange={handleChange}
                         className="input-modern pl-10" 
                       />
                     </div>
-                    <p className="text-[10px] text-slate-400 mt-1">Used for generating personalized outreach messages with GPT-4.</p>
                   </div>
                 </div>
 
-                <div className="pt-4 flex items-center justify-end gap-4">
-                  {success && (
-                    <div className="flex items-center gap-1.5 text-emerald-600 text-sm font-bold animate-in zoom-in">
-                      <CheckCircle2 size={16} /> Saved
+                <div className="space-y-4 pt-6">
+                  <h3 className="font-bold text-lg text-slate-900 border-b pb-2 flex items-center gap-2">
+                     <Server size={20} className="text-indigo-600" />
+                     Email Server (SMTP)
+                  </h3>
+                  
+                  <div className="grid md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <label className="text-xs font-bold text-slate-500 uppercase">SMTP Host</label>
+                      <input 
+                        type="text" 
+                        name="smtpHost"
+                        placeholder="smtp.gmail.com" 
+                        value={formData.smtpHost}
+                        onChange={handleChange}
+                        className="input-modern" 
+                      />
                     </div>
-                  )}
-                  <button type="submit" disabled={loading} className="btn-premium flex items-center gap-2 px-8">
-                    {loading ? <Zap size={18} className="animate-spin" /> : <Save size={18} />}
-                    Update Keys
+                    <div className="space-y-2">
+                      <label className="text-xs font-bold text-slate-500 uppercase">SMTP Port</label>
+                      <input 
+                        type="number" 
+                        name="smtpPort"
+                        placeholder="587" 
+                        value={formData.smtpPort}
+                        onChange={handleChange}
+                        className="input-modern" 
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-xs font-bold text-slate-500 uppercase">Username / Email</label>
+                      <input 
+                        type="email" 
+                        name="smtpUser"
+                        placeholder="user@example.com" 
+                        value={formData.smtpUser}
+                        onChange={handleChange}
+                        className="input-modern" 
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-xs font-bold text-slate-500 uppercase">Password / App Key</label>
+                      <input 
+                        type={showKeys ? "text" : "password"} 
+                        name="smtpPass"
+                        placeholder="••••••••" 
+                        value={formData.smtpPass}
+                        onChange={handleChange}
+                        className="input-modern" 
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <div className="pt-4 flex items-center justify-between gap-4">
+                  <button type="button" className="text-xs font-bold text-indigo-600 hover:bg-indigo-50 px-3 py-2 rounded-lg transition-colors border border-indigo-100 flex items-center gap-2">
+                     <Mail size={14} />
+                     Send Test Email
                   </button>
+                  <div className="flex items-center gap-4">
+                    {success && (
+                      <div className="flex items-center gap-1.5 text-emerald-600 text-sm font-bold animate-in zoom-in">
+                        <CheckCircle2 size={16} /> Saved
+                      </div>
+                    )}
+                    <button type="submit" disabled={loading} className="btn-premium flex items-center gap-2 px-8">
+                      {loading ? <Zap size={18} className="animate-spin" /> : <Save size={18} />}
+                      Update Integrations
+                    </button>
+                  </div>
                 </div>
               </div>
             </form>
