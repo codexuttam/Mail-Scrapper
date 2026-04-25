@@ -1,6 +1,7 @@
 import mongoose from 'mongoose';
 
 const LeadSchema = new mongoose.Schema({
+  userEmail: { type: String, required: true, index: true },
   name: { type: String, default: 'Unnamed Business' },
   email: { type: String },
   phone: { type: String },

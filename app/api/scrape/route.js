@@ -1,21 +1,26 @@
 import { NextResponse } from 'next/server';
+import { getServerSession } from "next-auth/next"
+import { authOptions } from "../auth/[...nextauth]/route"
 import { scrapeBusinesses } from '../../../lib/scraper';
 import connect from '../../../lib/db';
 import Lead from '../../../models/Lead';
 
 export async function POST(req) {
   try {
+    const session = await getServerSession(authOptions)
+    if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+
     const { query, save } = await req.json();
     if (!query) return NextResponse.json({ error: 'Missing query' }, { status: 400 });
 
     const data = await scrapeBusinesses(query);
 
-    // If save flag provided and DB configured, persist leads (upsert by name+address)
+    // If save flag provided and DB configured, persist leads (upsert by name+address+userEmail)
     if (save && process.env.MONGODB_URI) {
       await connect();
       const saved = [];
       for (const item of data) {
-        const filter = { name: item.name || '', address: item.address || '' };
+        const filter = { name: item.name || '', address: item.address || '', userEmail: session.user.email };
         const update = {
           name: item.name || 'Unknown',
           email: (item.emails && item.emails.length > 0) ? item.emails[0] : '',
@@ -24,7 +29,8 @@ export async function POST(req) {
           website: item.link || '',
           location: query,
           type: '',
-          status: 'new'
+          status: 'new',
+          userEmail: session.user.email
         };
         const doc = await Lead.findOneAndUpdate(filter, update, { upsert: true, new: true, setDefaultsOnInsert: true });
         saved.push(doc);
