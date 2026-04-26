@@ -1,6 +1,6 @@
 "use client"
 import { useState, useEffect, useRef } from 'react'
-import { Search, MapPin, Phone, Globe, Save, Loader2, Compass, Layers, Filter, Zap, Info, Instagram, Facebook, MessageSquare } from 'lucide-react'
+import { Search, MapPin, Phone, Globe, Save, Loader2, Compass, Layers, Filter, Zap, Info, Camera, Users, MessageSquare } from 'lucide-react'
 
 function ResultRow({ item, onSave }) {
   const [isSaving, setIsSaving] = useState(false)
@@ -64,12 +64,12 @@ function ResultRow({ item, onSave }) {
               <div className="flex items-center gap-2 border-l pl-4 border-slate-200">
                 {item.socials.instagram && (
                   <a href={item.socials.instagram} target="_blank" rel="noreferrer" className="text-slate-400 hover:text-pink-600 transition-colors">
-                    <Instagram size={16} />
+                    <Camera size={16} />
                   </a>
                 )}
                 {item.socials.facebook && (
                   <a href={item.socials.facebook} target="_blank" rel="noreferrer" className="text-slate-400 hover:text-blue-600 transition-colors">
-                    <Facebook size={16} />
+                    <Users size={16} />
                   </a>
                 )}
               </div>
