@@ -83,11 +83,11 @@ function LeadRow({ lead, onGenerate, onSend, onDelete, onMagic, isMagicLoading }
                 >
                    {lead.phone}
                    <span className="text-[10px] bg-slate-100 px-1.5 py-0.5 rounded text-slate-400 uppercase tracking-tighter">Phone only</span>
-                </a>
+                </button>
               ) : (
                 <span className="text-rose-300 italic font-medium flex items-center gap-1">
                    No Email Found 
-                   <div className="w-1.5 h-1.5 bg-rose-400 rounded-full animate-pulse"></div>
+                   <span className="w-1.5 h-1.5 bg-rose-400 rounded-full animate-pulse inline-block"></span>
                 </span>
               )}
            </div>
@@ -373,16 +373,17 @@ function DashboardContent() {
 
   return (
     <div className="space-y-8 pb-12">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-3xl font-extrabold text-indigo-950">Welcome, {firstName}!</h1>
-          <p className="text-slate-500">Manage your saved leads and track outreach progress.</p>
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+        <div className="relative">
+          <div className="absolute -left-4 top-0 w-1 h-full bg-indigo-600 rounded-full shadow-[0_0_15px_rgba(79,70,229,0.5)]"></div>
+          <h1 className="text-4xl font-black text-indigo-950 tracking-tight">Welcome, {firstName}!</h1>
+          <p className="text-slate-500 font-medium mt-1">Your lead generation pipeline is looking sharp.</p>
         </div>
         <div className="flex flex-wrap items-center gap-3">
           <button 
             onClick={() => setShowCleanupModal(true)}
             disabled={loading}
-            className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-slate-200 text-slate-500 text-xs font-bold hover:bg-rose-50 hover:text-rose-600 hover:border-rose-100 transition-all active:scale-95 disabled:opacity-50"
+            className="flex items-center gap-2 px-5 py-3 rounded-2xl border border-slate-200 text-slate-500 text-xs font-bold hover:bg-rose-50 hover:text-rose-600 hover:border-rose-100 transition-all active:scale-95 disabled:opacity-50"
           >
             <Trash2 size={14} />
             Clean Dead Leads
@@ -390,12 +391,32 @@ function DashboardContent() {
           <button 
             onClick={load} 
             disabled={loading}
-            className="btn-premium flex items-center gap-2"
+            className="px-6 py-3 rounded-2xl bg-indigo-600 text-white shadow-xl shadow-indigo-100 hover:shadow-indigo-300 hover:bg-indigo-700 transition-all flex items-center gap-2 font-bold text-sm active:scale-95"
           >
             <RefreshCw size={18} className={loading ? 'animate-spin' : ''} />
             Refresh Pipeline
           </button>
         </div>
+      </div>
+
+      {/* Premium Stats Bar */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+         {[
+           { label: 'Total Leads', value: leads.length, color: 'indigo', icon: Search },
+           { label: 'Contacted', value: leads.filter(l => l.status === 'sent').length, color: 'emerald', icon: Send },
+           { label: 'Success Rate', value: leads.length ? Math.round((leads.filter(l => l.status === 'sent').length / leads.length) * 100) + '%' : '0%', color: 'amber', icon: Zap },
+           { label: 'Pending', value: leads.length - leads.filter(l => l.status === 'sent').length, color: 'blue', icon: Mail },
+         ].map((stat, i) => (
+           <div key={i} className="glass-card p-4 border-none shadow-sm flex items-center gap-4 group hover:bg-white transition-all cursor-default">
+              <div className={`p-3 rounded-xl bg-${stat.color}-50 text-${stat.color}-600 group-hover:scale-110 transition-transform`}>
+                 <stat.icon size={20} />
+              </div>
+              <div>
+                 <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{stat.label}</p>
+                 <p className="text-xl font-black text-slate-900">{stat.value}</p>
+              </div>
+           </div>
+         ))}
       </div>
 
       {notice && (
@@ -440,7 +461,15 @@ function DashboardContent() {
           
           {loading && leads.length === 0 ? (
             <div className="space-y-4">
-               {[1,2,3].map(i => <div key={i} className="h-24 bg-slate-200/50 rounded-2xl animate-pulse"></div>)}
+               {[1,2,3].map(i => (
+                 <div key={i} className="h-28 bg-white/50 backdrop-blur-sm rounded-3xl border border-slate-100 flex items-center p-6 gap-4 animate-pulse">
+                    <div className="w-12 h-12 bg-slate-200 rounded-2xl"></div>
+                    <div className="flex-1 space-y-2">
+                       <div className="h-4 bg-slate-200 rounded-full w-1/3"></div>
+                       <div className="h-3 bg-slate-100 rounded-full w-1/4"></div>
+                    </div>
+                 </div>
+               ))}
             </div>
           ) : leads.length > 0 ? (
             <div className="animate-in">
@@ -574,91 +603,100 @@ function DashboardContent() {
         onClose={() => setModalOpen(false)} 
         title="Direct Outreach"
       >
-        <div className="flex flex-col bg-white">
-          {/* Prospect Info Row */}
-          <div className="px-5 py-3 bg-slate-50 flex items-center justify-between border-b border-slate-100">
-             <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-lg bg-indigo-600 text-white flex items-center justify-center font-bold text-xs shadow-sm">
-                   {modalLead?.name?.charAt(0)}
-                </div>
-                <div className="leading-none">
-                   <h4 className="font-bold text-slate-900 text-xs">{modalLead?.name}</h4>
-                   <p className="text-[10px] text-slate-500 font-medium mt-0.5">{modalLead?.email || 'No email saved'}</p>
-                </div>
-             </div>
-             <span className="bg-indigo-100/50 text-indigo-700 text-[9px] font-black px-1.5 py-0.5 rounded uppercase tracking-wider">Prospect</span>
+        <div className="bg-white">
+          {/* Compact Lead Header */}
+          <div className="px-4 py-2.5 bg-slate-50/50 border-b flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <div className="w-7 h-7 rounded-lg bg-indigo-600 text-white flex items-center justify-center font-bold text-[10px] shadow-sm">
+                {modalLead?.name?.charAt(0)}
+              </div>
+              <div>
+                <h4 className="font-bold text-slate-900 text-[11px] leading-tight">{modalLead?.name}</h4>
+                <p className="text-[9px] text-slate-400 font-medium">{modalLead?.email || (modalLead?.phone ? modalLead.phone : 'No info')}</p>
+              </div>
+            </div>
+            <div className="flex bg-slate-200/50 p-0.5 rounded-lg">
+              {['email', 'whatsapp'].map(ch => (
+                <button
+                  key={ch}
+                  onClick={() => setSelectedChannel(ch)}
+                  className={`px-2 py-1 rounded-md text-[9px] font-bold transition-all ${selectedChannel === ch ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-400'}`}
+                >
+                  {ch === 'email' ? <Mail size={10} className="inline mr-1"/> : <MessageCircle size={10} className="inline mr-1"/>}
+                  {ch.toUpperCase()}
+                </button>
+              ))}
+            </div>
           </div>
 
-          <div className="p-5 space-y-4">
-            {/* Subject Field */}
-            <div className="space-y-1">
-              <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">Subject</label>
-              <input 
-                type="text"
-                className="w-full px-3 py-2 rounded-lg border border-slate-200 focus:border-indigo-500 outline-none transition-all font-bold text-xs text-slate-800 placeholder:text-slate-300"
-                placeholder="Message Subject..."
-                value={modalSubject}
-                onChange={(e) => setModalSubject(e.target.value)}
-              />
-            </div>
-
-            {/* Message Body */}
-            <div className="space-y-1">
-              <div className="flex items-center justify-between ml-1">
-                <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Message</label>
-                <div className="flex items-center gap-2">
-                   <span className="text-[9px] font-bold text-slate-300">{modalMessage.length} / 1000</span>
-                </div>
+          <div className="p-4 space-y-3">
+            {selectedChannel === 'email' && (
+              <div className="space-y-1">
+                <input 
+                  type="text"
+                  className="w-full px-3 py-2 rounded-xl bg-slate-50 border-none focus:ring-2 focus:ring-indigo-500/20 outline-none transition-all font-bold text-xs text-slate-800 placeholder:text-slate-300"
+                  placeholder="Subject Line..."
+                  value={modalSubject}
+                  onChange={(e) => setModalSubject(e.target.value)}
+                />
               </div>
-              
+            )}
+
+            <div className="relative group">
               <textarea 
-                className="w-full h-32 p-3 rounded-xl border border-slate-200 focus:border-indigo-500 outline-none transition-all resize-none text-xs leading-relaxed text-slate-700 placeholder:text-slate-300 shadow-sm"
-                placeholder="Draft your personalized message here..."
+                className="w-full h-40 p-4 rounded-2xl bg-slate-50 border-none focus:ring-2 focus:ring-indigo-500/20 outline-none transition-all resize-none text-xs leading-relaxed text-slate-700 placeholder:text-slate-300"
+                placeholder="Draft your message..."
                 value={modalMessage}
                 onChange={(e) => setModalMessage(e.target.value)}
               />
+              <div className="absolute bottom-3 right-3 flex items-center gap-2">
+                <span className="text-[9px] font-bold text-slate-300 bg-white/50 px-1.5 py-0.5 rounded-full">{modalMessage.length}</span>
+              </div>
             </div>
 
-            {/* AI Controls Row */}
-            <div className="flex items-center justify-between gap-2">
-               <div className="flex items-center gap-2">
-                  <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Tone:</span>
-                  <select 
-                    value={modalTone}
-                    onChange={(e) => setModalTone(e.target.value)}
-                    className="bg-transparent border-none text-[10px] font-black text-indigo-600 outline-none cursor-pointer"
+            <div className="flex items-center justify-between">
+              <div className="flex bg-slate-100 p-1 rounded-xl">
+                {['friendly', 'professional', 'assertive'].map(t => (
+                  <button
+                    key={t}
+                    onClick={() => setModalTone(t)}
+                    className={`px-3 py-1 rounded-lg text-[9px] font-black uppercase tracking-wider transition-all ${modalTone === t ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-400'}`}
                   >
-                     <option value="friendly">Friendly</option>
-                     <option value="professional">Professional</option>
-                     <option value="assertive">Direct</option>
-                  </select>
-               </div>
-               
-               <button 
+                    {t}
+                  </button>
+                ))}
+              </div>
+              <button 
                 onClick={() => handleGenerate(modalLead)}
                 disabled={loading}
-                className="flex items-center gap-1.5 bg-indigo-50 text-indigo-600 px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest hover:bg-white border border-indigo-100 transition-all active:scale-95 disabled:opacity-50"
+                className="flex items-center gap-1.5 bg-indigo-600 text-white px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-indigo-700 shadow-lg shadow-indigo-100/50 transition-all active:scale-95 disabled:opacity-50"
               >
                 {loading ? <Loader2 size={10} className="animate-spin" /> : <Wand2 size={10} />}
-                {modalMessage.length > 0 ? 'Refine' : 'AI Draft'}
+                {modalMessage.length > 0 ? 'Refine AI' : 'Draft With AI'}
               </button>
             </div>
           </div>
 
-          <div className="px-5 py-4 bg-slate-50 border-t border-slate-100 flex gap-2">
+          <div className="px-4 py-3 bg-slate-50 border-t flex gap-2">
             <button 
               onClick={() => setModalOpen(false)}
-              className="px-4 h-10 bg-white text-slate-500 text-[11px] font-bold rounded-lg border border-slate-200 hover:bg-slate-50 transition-all active:scale-95"
+              className="px-4 py-2 bg-white text-slate-400 text-[10px] font-bold rounded-xl border hover:bg-slate-50 transition-all"
             >
               Cancel
             </button>
             <button 
-              onClick={() => performSend(modalLead, modalMessage)}
-              disabled={!modalMessage.trim() || !modalSubject.trim() || loading}
-              className="flex-1 h-10 bg-indigo-600 text-white font-black uppercase tracking-widest text-[11px] rounded-lg flex items-center justify-center gap-2 hover:bg-indigo-700 shadow-lg shadow-indigo-500/20 transition-all active:scale-95 disabled:opacity-50"
+              onClick={() => selectedChannel === 'whatsapp' ? (() => {
+                  let cleaned = modalLead.phone?.replace(/[^0-9]/g, '') || '';
+                  if (cleaned.startsWith('0')) cleaned = cleaned.substring(1);
+                  const final = cleaned.length === 10 ? `91${cleaned}` : cleaned;
+                  window.open(`https://wa.me/${final}?text=${encodeURIComponent(modalMessage)}`, '_blank');
+                  setModalOpen(false);
+              })() : performSend(modalLead, modalMessage)}
+              disabled={!modalMessage.trim() || (selectedChannel === 'email' && !modalSubject.trim()) || loading}
+              className="flex-1 py-2 bg-indigo-600 text-white font-black uppercase tracking-widest text-[10px] rounded-xl flex items-center justify-center gap-2 hover:bg-indigo-700 shadow-xl shadow-indigo-200 transition-all active:scale-95 disabled:opacity-50"
             >
-              {loading ? <Loader2 size={14} className="animate-spin" /> : <Send size={14} />}
-              Send Outreach
+              {loading ? <Loader2 size={12} className="animate-spin" /> : <Send size={12} />}
+              {selectedChannel === 'email' ? 'Send Email' : 'Open WhatsApp'}
             </button>
           </div>
         </div>
