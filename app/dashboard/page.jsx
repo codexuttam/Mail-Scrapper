@@ -71,10 +71,21 @@ function LeadRow({ lead, onGenerate, onSend, onDelete, onMagic, isMagicLoading }
               {lead.email ? (
                 <span className="text-slate-600 font-bold">{lead.email}</span>
               ) : lead.phone ? (
-                <span className="text-slate-500 font-bold flex items-center gap-1.5">
+                <a 
+                  href={`https://web.whatsapp.com/send/?phone=${(() => {
+                    let cleaned = lead.phone.replace(/[^0-9]/g, '');
+                    if (cleaned.startsWith('0')) cleaned = cleaned.substring(1);
+                    const final = cleaned.length === 10 ? `91${cleaned}` : cleaned;
+                    console.log('Routing to WhatsApp:', final);
+                    return final;
+                  })()}&text=&type=phone_number&app_absent=0`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-slate-500 font-bold flex items-center gap-1.5 hover:text-emerald-600 transition-colors"
+                >
                    {lead.phone}
                    <span className="text-[10px] bg-slate-100 px-1.5 py-0.5 rounded text-slate-400 uppercase tracking-tighter">Phone only</span>
-                </span>
+                </a>
               ) : (
                 <span className="text-rose-300 italic font-medium flex items-center gap-1">
                    No Email Found 
@@ -104,11 +115,12 @@ function LeadRow({ lead, onGenerate, onSend, onDelete, onMagic, isMagicLoading }
         <div className="w-px h-6 bg-slate-200 mx-1"></div>
         {lead.phone && (
           <a 
-            href={`https://web.whatsapp.com/send?phone=${(() => {
-              const cleaned = lead.phone.replace(/[^0-9]/g, '');
-              // If it's a 10-digit number, prepend 91 (India)
-              return cleaned.length === 10 ? `91${cleaned}` : cleaned;
-            })()}`}
+            href={`https://web.whatsapp.com/send/?phone=${(() => {
+              let cleaned = lead.phone.replace(/[^0-9]/g, '');
+              if (cleaned.startsWith('0')) cleaned = cleaned.substring(1);
+              const final = cleaned.length === 10 ? `91${cleaned}` : cleaned;
+              return final;
+            })()}&text=&type=phone_number&app_absent=0`}
             target="_blank"
             rel="noopener noreferrer"
             className="p-2.5 rounded-lg bg-emerald-500 text-white hover:bg-emerald-600 transition-all shadow-sm flex items-center justify-center"
