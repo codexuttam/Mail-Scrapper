@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+export const dynamic = 'force-dynamic';
 import { generateOutreach } from '../../../lib/openai';
 import connect from '../../../lib/db';
 import Lead from '../../../models/Lead';
