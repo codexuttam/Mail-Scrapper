@@ -2,7 +2,7 @@
 import { useEffect, useState, Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { useSession } from 'next-auth/react'
-import { Mail, Trash2, Send, Wand2, RefreshCw, CheckCircle2, AlertCircle, Calendar, MapPin, X, Zap, Loader2, Search, MessageCircle, MessageSquare, AlertTriangle } from 'lucide-react'
+import { Mail, Trash2, Send, Wand2, RefreshCw, CheckCircle2, AlertCircle, Calendar, MapPin, X, Zap, Loader2, Search, MessageCircle, MessageSquare, AlertTriangle, Copy } from 'lucide-react'
 
 function formatDate(iso) {
   try {
@@ -71,16 +71,14 @@ function LeadRow({ lead, onGenerate, onSend, onDelete, onMagic, isMagicLoading }
               {lead.email ? (
                 <span className="text-slate-600 font-bold">{lead.email}</span>
               ) : lead.phone ? (
-                <a 
-                  href={`https://web.whatsapp.com/send/?phone=${(() => {
+                <button 
+                  onClick={() => {
                     let cleaned = lead.phone.replace(/[^0-9]/g, '');
                     if (cleaned.startsWith('0')) cleaned = cleaned.substring(1);
                     const final = cleaned.length === 10 ? `91${cleaned}` : cleaned;
-                    console.log('Routing to WhatsApp:', final);
-                    return final;
-                  })()}&text=&type=phone_number&app_absent=0`}
-                  target="_blank"
-                  rel="noopener noreferrer"
+                    const url = `https://wa.me/${final}`;
+                    window.open(url, '_blank', 'noopener,noreferrer');
+                  }}
                   className="text-slate-500 font-bold flex items-center gap-1.5 hover:text-emerald-600 transition-colors"
                 >
                    {lead.phone}
@@ -114,20 +112,33 @@ function LeadRow({ lead, onGenerate, onSend, onDelete, onMagic, isMagicLoading }
         </button>
         <div className="w-px h-6 bg-slate-200 mx-1"></div>
         {lead.phone && (
-          <a 
-            href={`https://web.whatsapp.com/send/?phone=${(() => {
-              let cleaned = lead.phone.replace(/[^0-9]/g, '');
-              if (cleaned.startsWith('0')) cleaned = cleaned.substring(1);
-              const final = cleaned.length === 10 ? `91${cleaned}` : cleaned;
-              return final;
-            })()}&text=&type=phone_number&app_absent=0`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="p-2.5 rounded-lg bg-emerald-500 text-white hover:bg-emerald-600 transition-all shadow-sm flex items-center justify-center"
-            title="Chat on WhatsApp"
-          >
-            <MessageSquare size={18} />
-          </a>
+          <div className="flex items-center gap-1">
+            <button 
+              onClick={() => {
+                let cleaned = lead.phone.replace(/[^0-9]/g, '');
+                if (cleaned.startsWith('0')) cleaned = cleaned.substring(1);
+                const final = cleaned.length === 10 ? `91${cleaned}` : cleaned;
+                window.open(`https://wa.me/${final}`, '_blank', 'noopener,noreferrer');
+              }}
+              className="p-2.5 rounded-lg bg-emerald-500 text-white hover:bg-emerald-600 transition-all shadow-sm flex items-center justify-center border-none cursor-pointer"
+              title="Chat on WhatsApp"
+            >
+              <MessageSquare size={18} />
+            </button>
+            <button 
+              onClick={() => {
+                let cleaned = lead.phone.replace(/[^0-9]/g, '');
+                if (cleaned.startsWith('0')) cleaned = cleaned.substring(1);
+                const final = cleaned.length === 10 ? `91${cleaned}` : cleaned;
+                navigator.clipboard.writeText(final);
+                // Simple feedback would be nice here, but we'll stick to the copy for now
+              }}
+              className="p-2.5 rounded-lg bg-slate-100 text-slate-400 hover:bg-slate-200 transition-all flex items-center justify-center border-none cursor-pointer"
+              title="Copy WhatsApp Number"
+            >
+              <Copy size={16} />
+            </button>
+          </div>
         )}
         <button 
           onClick={() => onGenerate(lead)} 
