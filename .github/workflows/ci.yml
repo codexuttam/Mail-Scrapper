@@ -25,6 +25,12 @@ jobs:
 
       - name: Build
         run: npm run build --if-present
+        env:
+          OPENAI_API_KEY: "mock_key_for_build"
+          GROQ_API_KEY: "mock_key_for_build"
+          MONGODB_URI: "mongodb://localhost:27017/mock"
+          NEXTAUTH_SECRET: "mock_secret"
+          NEXTAUTH_URL: "http://localhost:3000"
 
       - name: Lint (if available)
         run: npm run lint --if-present
