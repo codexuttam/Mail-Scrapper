@@ -14,6 +14,10 @@ What's included
 Quick start
 
 1. Copy .env.example to .env.local and set values (MONGODB_URI, OPENAI_API_KEY)
+
+Note: This repository includes a `.env.example` at the project root. Copy it to
+`.env.local` (or `.env`) and replace placeholder values with your real credentials
+before running the app.
 2. Install dependencies
 
 ```bash
