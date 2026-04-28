@@ -76,13 +76,12 @@ function LeadRow({ lead, onGenerate, onSend, onDelete, onMagic, isMagicLoading }
                     let cleaned = lead.phone.replace(/[^0-9]/g, '');
                     if (cleaned.startsWith('0')) cleaned = cleaned.substring(1);
                     const final = cleaned.length === 10 ? `91${cleaned}` : cleaned;
-                    const url = `https://wa.me/${final}`;
+                    const url = `https://web.whatsapp.com/send?phone=${final}`;
                     window.open(url, '_blank', 'noopener,noreferrer');
                   }}
                   className="text-slate-500 font-bold flex items-center gap-1.5 hover:text-emerald-600 transition-colors"
                 >
                    {lead.phone}
-                   <span className="text-[10px] bg-slate-100 px-1.5 py-0.5 rounded text-slate-400 uppercase tracking-tighter">Phone only</span>
                 </button>
               ) : (
                 <span className="text-rose-300 italic font-medium flex items-center gap-1">
@@ -95,6 +94,35 @@ function LeadRow({ lead, onGenerate, onSend, onDelete, onMagic, isMagicLoading }
              <div className="flex items-center gap-1.5 text-xs font-medium text-slate-400">
                 <Calendar size={12} />
                 {formatDate(lead.lastSentAt)}
+             </div>
+           )}
+           {lead.website && (
+             <a href={lead.website} target="_blank" rel="noreferrer" className="flex items-center gap-1 text-xs font-bold text-indigo-500 hover:text-indigo-700 transition-colors bg-indigo-50 px-2 py-1 rounded-md">
+               Website
+             </a>
+           )}
+           {lead.socials && Object.values(lead.socials).some(Boolean) && (
+             <div className="flex items-center gap-2 border-l border-slate-200 pl-3">
+                {lead.socials.instagram && (
+                  <a href={lead.socials.instagram} target="_blank" rel="noreferrer" className="text-slate-400 hover:text-pink-600 transition-colors" title="Instagram">
+                    <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line></svg>
+                  </a>
+                )}
+                {lead.socials.facebook && (
+                  <a href={lead.socials.facebook} target="_blank" rel="noreferrer" className="text-slate-400 hover:text-blue-600 transition-colors" title="Facebook">
+                    <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"></path></svg>
+                  </a>
+                )}
+                {lead.socials.linkedin && (
+                  <a href={lead.socials.linkedin} target="_blank" rel="noreferrer" className="text-slate-400 hover:text-blue-500 transition-colors" title="LinkedIn">
+                    <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"></path><rect x="2" y="9" width="4" height="12"></rect><circle cx="4" cy="4" r="2"></circle></svg>
+                  </a>
+                )}
+                {lead.socials.twitter && (
+                  <a href={lead.socials.twitter} target="_blank" rel="noreferrer" className="text-slate-400 hover:text-sky-500 transition-colors" title="Twitter/X">
+                    <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round"><path d="M23 3a10.9 10.9 0 0 1-3.14 1.53 4.48 4.48 0 0 0-7.86 3v1A10.66 10.66 0 0 1 3 4s-4 9 5 13a11.64 11.64 0 0 1-7 2c9 5 20 0 20-11.5a4.5 4.5 0 0 0-.08-.83A7.72 7.72 0 0 0 23 3z"></path></svg>
+                  </a>
+                )}
              </div>
            )}
         </div>
@@ -118,12 +146,12 @@ function LeadRow({ lead, onGenerate, onSend, onDelete, onMagic, isMagicLoading }
                 let cleaned = lead.phone.replace(/[^0-9]/g, '');
                 if (cleaned.startsWith('0')) cleaned = cleaned.substring(1);
                 const final = cleaned.length === 10 ? `91${cleaned}` : cleaned;
-                window.open(`https://wa.me/${final}`, '_blank', 'noopener,noreferrer');
+                window.open(`https://web.whatsapp.com/send?phone=${final}`, '_blank', 'noopener,noreferrer');
               }}
-              className="p-2.5 rounded-lg bg-emerald-500 text-white hover:bg-emerald-600 transition-all shadow-sm flex items-center justify-center border-none cursor-pointer"
+              className="p-2.5 rounded-lg bg-emerald-500 text-white hover:bg-emerald-600 transition-all shadow-sm flex items-center justify-center border-none cursor-pointer group"
               title="Chat on WhatsApp"
             >
-              <MessageSquare size={18} />
+              <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round" className="group-hover:scale-110 transition-transform"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path></svg>
             </button>
             <button 
               onClick={() => {
@@ -689,7 +717,7 @@ function DashboardContent() {
                   let cleaned = modalLead.phone?.replace(/[^0-9]/g, '') || '';
                   if (cleaned.startsWith('0')) cleaned = cleaned.substring(1);
                   const final = cleaned.length === 10 ? `91${cleaned}` : cleaned;
-                  window.open(`https://wa.me/${final}?text=${encodeURIComponent(modalMessage)}`, '_blank');
+                  window.open(`https://web.whatsapp.com/send?phone=${final}&text=${encodeURIComponent(modalMessage)}`, '_blank');
                   setModalOpen(false);
               })() : performSend(modalLead, modalMessage)}
               disabled={!modalMessage.trim() || (selectedChannel === 'email' && !modalSubject.trim()) || loading}

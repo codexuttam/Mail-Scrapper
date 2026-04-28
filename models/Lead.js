@@ -7,6 +7,12 @@ const LeadSchema = new mongoose.Schema({
   phone: { type: String },
   address: { type: String },
   website: { type: String },
+  socials: {
+    instagram: String,
+    facebook: String,
+    linkedin: String,
+    twitter: String
+  },
   location: { type: String },
   type: { type: String },
   status: { type: String, default: 'new' },

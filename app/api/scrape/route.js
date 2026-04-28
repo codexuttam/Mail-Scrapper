@@ -9,10 +9,11 @@ import Lead from '../../../models/Lead';
 export async function POST(req) {
   try {
     const session = await getServerSession(authOptions)
-    if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
 
     const { query, save } = await req.json();
     if (!query) return NextResponse.json({ error: 'Missing query' }, { status: 400 });
+
+    if (save && !session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
 
     const data = await scrapeBusinesses(query);
 
@@ -27,9 +28,9 @@ export async function POST(req) {
           email: (item.emails && item.emails.length > 0) ? item.emails[0] : '',
           phone: item.phone || '',
           address: item.address || '',
-          website: item.link || '',
+          website: item.website || item.link || '',
+          socials: item.socials || {},
           location: query,
-          type: '',
           status: 'new',
           userEmail: session.user.email
         };

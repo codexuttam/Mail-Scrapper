@@ -13,86 +13,115 @@ function ResultRow({ item, onSave }) {
     setSaved(true)
   }
 
+  const WA_ICON = <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path></svg>;
+  const IG_ICON = <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line></svg>;
+  const FB_ICON = <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"></path></svg>;
+  const X_ICON = <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round"><path d="M23 3a10.9 10.9 0 0 1-3.14 1.53 4.48 4.48 0 0 0-7.86 3v1A10.66 10.66 0 0 1 3 4s-4 9 5 13a11.64 11.64 0 0 1-7 2c9 5 20 0 20-11.5a4.5 4.5 0 0 0-.08-.83A7.72 7.72 0 0 0 23 3z"></path></svg>;
+  const IN_ICON = <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"></path><rect x="2" y="9" width="4" height="12"></rect><circle cx="4" cy="4" r="2"></circle></svg>;
+
   return (
-    <div className="glass-card mb-4 p-5 card-hover group transition-all duration-300 hover:border-indigo-200 animate-in">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div className="flex-1">
-          <div className="flex items-center gap-2 mb-1">
-            <h3 className="font-bold text-lg text-indigo-950">{item.name}</h3>
-            {item.rating && (
-              <span className="bg-amber-100 text-amber-700 text-[10px] font-bold px-1.5 py-0.5 rounded flex items-center gap-1">
-                ★ {item.rating}
-              </span>
-            )}
-          </div>
-          <div className="flex items-center gap-1.5 text-sm text-slate-500 mb-2">
-            <MapPin size={14} className="text-slate-400" />
-            <span className="line-clamp-1">{item.address}</span>
-          </div>
-          <div className="flex flex-wrap gap-4 items-center mt-3">
-            <div className="flex items-center gap-3 text-sm font-medium">
-              <div className="flex items-center gap-1.5 text-slate-600">
-                <Phone size={14} className="text-indigo-400" />
-                {item.phone || <span className="text-slate-300">No phone</span>}
-              </div>
-              {item.phone && (
-                <a 
-                  href={`https://wa.me/${item.phone.replace(/\D/g, '')}`} 
-                  target="_blank" 
-                  rel="noreferrer"
-                  className="p-1.5 bg-emerald-50 text-emerald-600 rounded-lg hover:bg-emerald-100 transition-colors"
-                  title="Chat on WhatsApp"
-                >
-                  <MessageSquare size={14} />
-                </a>
+    <div className="bg-white rounded-2xl shadow-sm border border-slate-200 mb-4 p-5 hover:shadow-lg hover:border-indigo-300 transition-all duration-300 animate-in group">
+      <div className="flex flex-col lg:flex-row justify-between gap-5">
+        <div className="flex-1 space-y-3">
+          <div>
+            <div className="flex items-center gap-2 mb-1.5">
+              <h3 className="font-extrabold text-xl text-slate-900 group-hover:text-indigo-600 transition-colors">{item.name}</h3>
+              {item.rating && (
+                <span className="bg-amber-100 text-amber-700 text-xs font-bold px-2 py-0.5 rounded-md flex items-center gap-1 border border-amber-200 shadow-sm">
+                  ★ {item.rating}
+                </span>
               )}
             </div>
+            <div className="flex items-start gap-2 text-sm text-slate-500 font-medium">
+              <MapPin size={16} className="text-indigo-400 mt-0.5 shrink-0" />
+              <span className="line-clamp-2 leading-snug">{item.address}</span>
+            </div>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-x-6 gap-y-3 pt-1">
+            {/* Phone & WhatsApp */}
+            <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2 text-sm font-semibold">
+                <Phone size={16} className={item.phone ? "text-indigo-500" : "text-slate-300"} />
+                <span className={item.phone ? "text-slate-700" : "text-slate-400 italic font-medium"}>
+                  {item.phone || "No phone"}
+                </span>
+              </div>
+              
+              {item.phone && (() => {
+                let cleaned = item.phone.replace(/\D/g, '');
+                if (cleaned.startsWith('0')) cleaned = cleaned.substring(1);
+                if (cleaned.length === 10) cleaned = '91' + cleaned;
+                return (
+                  <a 
+                    href={`https://web.whatsapp.com/send?phone=${cleaned}`} 
+                    target="_blank" 
+                    rel="noreferrer"
+                    className="p-1.5 bg-emerald-50 text-emerald-600 rounded-lg hover:bg-emerald-500 hover:text-white hover:shadow-lg hover:shadow-emerald-200 transition-all"
+                    title="Chat on WhatsApp"
+                  >
+                    {WA_ICON}
+                  </a>
+                );
+              })()}
+            </div>
+
+            {/* Emails */}
             {item.emails && item.emails.filter(e => !!e).length > 0 && (
-              <div className="flex items-center gap-1.5 text-sm font-medium text-emerald-600">
-                 <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></div>
-                 {item.emails.filter(e => !!e)[0]}
+              <div className="flex items-center gap-2 text-sm font-bold text-emerald-600 bg-emerald-50 px-3 py-1.5 rounded-lg border border-emerald-100">
+                <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse shadow-[0_0_8px_rgba(16,185,129,0.5)]"></div>
+                {item.emails.filter(e => !!e)[0]}
               </div>
             )}
+
+            {/* Website */}
             {(item.website || item.link) && (
-              <a href={item.website || item.link} target="_blank" rel="noreferrer" className="flex items-center gap-1.5 text-sm font-medium text-indigo-600 hover:underline">
-                <Globe size={14} />
+              <a href={item.website || item.link} target="_blank" rel="noreferrer" className="flex items-center gap-1.5 text-sm font-bold text-indigo-600 hover:text-indigo-800 transition-colors bg-indigo-50 hover:bg-indigo-100 px-3 py-1.5 rounded-lg">
+                <Globe size={16} />
                 Website
               </a>
             )}
-            
-            {item.socials && (
-              <div className="flex items-center gap-2 border-l pl-4 border-slate-200">
+
+            {/* Socials */}
+            {item.socials && Object.values(item.socials).some(Boolean) && (
+              <div className="flex items-center gap-2.5 border-l-2 border-slate-100 pl-5">
                 {item.socials.instagram && (
-                  <a href={item.socials.instagram} target="_blank" rel="noreferrer" className="text-slate-400 hover:text-pink-600 transition-colors">
-                    <Camera size={16} />
-                  </a>
+                  <a href={item.socials.instagram} target="_blank" rel="noreferrer" className="text-slate-400 hover:text-pink-600 transition-colors" title="Instagram">{IG_ICON}</a>
                 )}
                 {item.socials.facebook && (
-                  <a href={item.socials.facebook} target="_blank" rel="noreferrer" className="text-slate-400 hover:text-blue-600 transition-colors">
-                    <Users size={16} />
-                  </a>
+                  <a href={item.socials.facebook} target="_blank" rel="noreferrer" className="text-slate-400 hover:text-blue-600 transition-colors" title="Facebook">{FB_ICON}</a>
+                )}
+                {item.socials.linkedin && (
+                  <a href={item.socials.linkedin} target="_blank" rel="noreferrer" className="text-slate-400 hover:text-blue-500 transition-colors" title="LinkedIn">{IN_ICON}</a>
+                )}
+                {item.socials.twitter && (
+                  <a href={item.socials.twitter} target="_blank" rel="noreferrer" className="text-slate-400 hover:text-sky-500 transition-colors" title="Twitter">{X_ICON}</a>
                 )}
               </div>
             )}
           </div>
         </div>
         
-        <div className="flex md:flex-col items-center gap-3">
+        <div className="flex lg:flex-col items-center justify-end gap-3 shrink-0 border-t lg:border-t-0 lg:border-l border-slate-100 pt-4 lg:pt-0 lg:pl-6">
           <button 
             disabled={isSaving || saved}
             onClick={handleSave} 
-            className={`btn-premium w-full md:w-32 flex justify-center gap-2 ${saved ? 'bg-emerald-500 hover:bg-emerald-600 shadow-emerald-200' : ''}`}
+            className={`w-full lg:w-36 h-11 flex items-center justify-center gap-2 rounded-xl font-bold transition-all ${
+              saved 
+                ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-200' 
+                : 'bg-indigo-600 text-white hover:bg-indigo-700 shadow-lg shadow-indigo-200 active:scale-95'
+            }`}
           >
-            {isSaving ? <Loader2 size={16} className="animate-spin" /> : saved ? <><Save size={16}/> Saved</> : <><Save size={16}/> Save Lead</>}
+            {isSaving ? <Loader2 size={18} className="animate-spin" /> : saved ? <><Save size={18} /> Saved</> : <><Save size={18} /> Save Lead</>}
           </button>
           
           <a 
             href={item.link || '#'} 
             target="_blank" 
             rel="noreferrer" 
-            className="flex items-center justify-center h-10 px-4 rounded-lg bg-slate-100 text-slate-700 text-sm font-bold hover:bg-slate-200 transition-colors"
+            className="w-full lg:w-36 h-11 flex items-center justify-center rounded-xl bg-slate-50 text-slate-600 border border-slate-200 font-bold hover:bg-slate-100 hover:text-slate-900 transition-all active:scale-95"
           >
-            View Map
+            <MapPin size={16} className="mr-2" /> View Map
           </a>
         </div>
       </div>
@@ -205,9 +234,10 @@ export default function FindPage() {
         email: (item.emails && item.emails.length > 0) ? item.emails[0] : '',
         phone: item.phone, 
         address: item.address, 
-        website: item.link || item.website || '', 
-        location: query 
-      }), 
+        website: item.website || item.link || '', 
+        socials: item.socials,
+        location: query  
+      }),
       headers: { 'Content-Type': 'application/json' } 
     })
   }
