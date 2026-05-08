@@ -409,6 +409,39 @@ function DashboardContent() {
         </div>
         <div className="flex flex-wrap items-center gap-3">
           <button 
+            onClick={() => {
+              const headers = ['Name', 'Email', 'Phone', 'Address', 'Website', 'Status', 'Date Found'];
+              const rows = leads.map(l => [
+                l.name,
+                l.email || '',
+                l.phone || '',
+                l.address || '',
+                l.website || '',
+                l.status || 'new',
+                l.createdAt || ''
+              ]);
+              
+              const csvContent = [
+                headers.join(','),
+                ...rows.map(r => r.map(field => `"${String(field).replace(/"/g, '""')}"`).join(','))
+              ].join('\n');
+              
+              const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+              const url = URL.createObjectURL(blob);
+              const link = document.createElement('a');
+              link.setAttribute('href', url);
+              link.setAttribute('download', `leads_export_${new Date().toISOString().split('T')[0]}.csv`);
+              document.body.appendChild(link);
+              link.click();
+              document.body.removeChild(link);
+            }}
+            disabled={loading || leads.length === 0}
+            className="flex items-center gap-2 px-5 py-3 rounded-2xl border border-slate-200 text-slate-500 text-xs font-bold hover:bg-indigo-50 hover:text-indigo-600 hover:border-indigo-100 transition-all active:scale-95 disabled:opacity-50"
+          >
+            <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+            Export CSV
+          </button>
+          <button 
             onClick={() => setShowCleanupModal(true)}
             disabled={loading}
             className="flex items-center gap-2 px-5 py-3 rounded-2xl border border-slate-200 text-slate-500 text-xs font-bold hover:bg-rose-50 hover:text-rose-600 hover:border-rose-100 transition-all active:scale-95 disabled:opacity-50"
