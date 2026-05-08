@@ -45,26 +45,66 @@ function Modal({ isOpen, onClose, title, children }) {
   )
 }
 
-function LeadRow({ lead, onGenerate, onSend, onDelete, onMagic, isMagicLoading }) {
+function LeadRow({ lead, onGenerate, onSend, onDelete, onMagic, isMagicLoading, onUpdate }) {
+  const [notes, setNotes] = useState(lead.notes || '')
+  const [isUpdating, setIsUpdating] = useState(false)
+
+  const handleNotesBlur = async () => {
+    if (notes !== lead.notes) {
+      setIsUpdating(true)
+      await onUpdate(lead._id, { notes })
+      setIsUpdating(false)
+    }
+  }
+
+  const handleStatusChange = async (newStatus) => {
+    setIsUpdating(true)
+    await onUpdate(lead._id, { status: newStatus })
+    setIsUpdating(false)
+  }
+
   return (
     <div className="glass-card mb-4 p-5 flex flex-col md:flex-row md:items-center justify-between gap-4 card-hover border-l-4 border-l-transparent hover:border-l-indigo-500 transition-all">
       <div className="flex-1">
         <div className="flex items-center gap-3 mb-1">
           <h3 className="font-bold text-lg text-slate-900">{lead.name}</h3>
-          {lead.status === 'sent' ? (
-            <span className="inline-flex items-center gap-1 bg-emerald-50 text-emerald-700 text-[10px] font-bold px-2 py-0.5 rounded-full border border-emerald-100 uppercase tracking-wider">
-              <CheckCircle2 size={10} /> Sent
-            </span>
-          ) : (
-            <span className="inline-flex items-center gap-1 bg-indigo-50 text-indigo-700 text-[10px] font-bold px-2 py-0.5 rounded-full border border-indigo-100 uppercase tracking-wider">
-              <RefreshCw size={10} /> New
-            </span>
-          )}
+          
+          <select 
+            value={lead.status || 'new'} 
+            onChange={(e) => handleStatusChange(e.target.value)}
+            className={`text-[10px] font-bold px-2 py-0.5 rounded-full border uppercase tracking-wider outline-none cursor-pointer transition-all ${
+              lead.status === 'sent' ? 'bg-emerald-50 text-emerald-700 border-emerald-100' :
+              lead.status === 'interested' ? 'bg-blue-50 text-blue-700 border-blue-100' :
+              lead.status === 'replied' ? 'bg-purple-50 text-purple-700 border-purple-100' :
+              lead.status === 'rejected' ? 'bg-rose-50 text-rose-700 border-rose-100' :
+              'bg-indigo-50 text-indigo-700 border-indigo-100'
+            }`}
+          >
+            <option value="new">New</option>
+            <option value="sent">Sent</option>
+            <option value="interested">Interested</option>
+            <option value="replied">Replied</option>
+            <option value="rejected">Rejected</option>
+          </select>
+
+          {isUpdating && <Loader2 size={12} className="animate-spin text-slate-400" />}
         </div>
         <div className="flex items-center gap-2 text-sm text-slate-500 mb-2">
           <MapPin size={14} className="text-slate-400" />
           <span className="truncate max-w-xs">{lead.address}</span>
         </div>
+        
+        <div className="mb-3">
+          <input 
+            type="text" 
+            placeholder="Add a private note..." 
+            className="w-full bg-slate-50 border-none text-[11px] py-1 px-2 rounded focus:ring-1 focus:ring-indigo-200 outline-none placeholder:italic placeholder:text-slate-300 text-slate-600"
+            value={notes}
+            onChange={(e) => setNotes(e.target.value)}
+            onBlur={handleNotesBlur}
+          />
+        </div>
+
         <div className="flex flex-wrap gap-4 items-center">
            <div className="flex items-center gap-1.5 text-xs font-medium">
               <Mail size={12} className={lead.email ? "text-indigo-400" : "text-slate-300"} />
@@ -399,6 +439,22 @@ function DashboardContent() {
     }
   }
 
+  async function handleUpdateLead(id, updates) {
+    try {
+      const res = await fetch('/api/leads', {
+        method: 'PATCH',
+        body: JSON.stringify({ id, updates }),
+        headers: { 'Content-Type': 'application/json' }
+      })
+      const data = await res.json()
+      if (data.lead) {
+        setLeads(cur => cur.map(l => l._id === id ? data.lead : l))
+      }
+    } catch (err) {
+      setNotice({ type: 'error', message: 'Update failed: ' + err.message })
+    }
+  }
+
   return (
     <div className="space-y-8 pb-12">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
@@ -543,6 +599,7 @@ function DashboardContent() {
                   onDelete={handleDelete}
                   onMagic={handleMagic}
                   isMagicLoading={magicLoadingId === l._id} 
+                  onUpdate={handleUpdateLead}
                 />
               ))}
 
