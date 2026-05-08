@@ -340,7 +340,9 @@ function DashboardContent() {
 
   useEffect(() => { load() }, [])
 
-  async function handleGenerate(lead) {
+  const [campaignType, setCampaignType] = useState('intro')
+
+  async function handleGenerate(lead, type = campaignType) {
     setLoading(true)
     try {
       const res = await fetch('/api/generate', {
@@ -351,7 +353,8 @@ function DashboardContent() {
           location: lead.location || '', 
           tone: modalOpen ? modalTone : 'friendly', 
           leadId: lead._id,
-          channel: selectedChannel 
+          channel: selectedChannel,
+          campaignType: type
         }),
         headers: { 'Content-Type': 'application/json' }
       })
@@ -377,7 +380,14 @@ function DashboardContent() {
       // 1. Generate
       const genRes = await fetch('/api/generate', {
         method: 'POST',
-        body: JSON.stringify({ name: lead.name, type: lead.type || 'business', location: lead.location || '', tone: 'friendly', leadId: lead._id }),
+        body: JSON.stringify({ 
+          name: lead.name, 
+          type: lead.type || 'business', 
+          location: lead.location || '', 
+          tone: 'friendly', 
+          leadId: lead._id,
+          campaignType: 'intro'
+        }),
         headers: { 'Content-Type': 'application/json' }
       })
       const genData = await genRes.json()
@@ -708,6 +718,23 @@ function DashboardContent() {
                     AI Draft
                   </h3>
                   <button onClick={() => setPreviewLead(null)} className="text-indigo-300 hover:text-white transition-colors"><X size={20}/></button>
+                </div>
+
+                <div className="flex bg-white/10 rounded-xl p-1 mb-4 border border-white/5">
+                   {[
+                     { id: 'intro', label: 'Intro' },
+                     { id: 'offer', label: 'Offer' },
+                     { id: 'partnership', label: 'Partnership' },
+                     { id: 'followup', label: 'Follow-up' }
+                   ].map(ct => (
+                     <button
+                       key={ct.id}
+                       onClick={() => { setCampaignType(ct.id); handleGenerate(previewLead, ct.id); }}
+                       className={`flex-1 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-wider transition-all ${campaignType === ct.id ? 'bg-indigo-500 text-white shadow-sm' : 'text-indigo-300 hover:bg-white/5'}`}
+                     >
+                       {ct.label}
+                     </button>
+                   ))}
                 </div>
 
                 <div className="flex bg-white/10 rounded-xl p-1 mb-6 border border-white/5">

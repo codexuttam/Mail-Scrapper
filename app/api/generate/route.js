@@ -7,7 +7,7 @@ import Settings from '../../../models/Settings';
 
 export async function POST(req) {
   try {
-    const { name, type, location, tone, leadId } = await req.json();
+    const { name, type, location, tone, leadId, channel, campaignType } = await req.json();
 
     if (!name || !type || !location) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
@@ -22,7 +22,9 @@ export async function POST(req) {
       type, 
       location, 
       tone: tone || 'friendly', 
-      senderName 
+      senderName,
+      channel: channel || 'email',
+      campaignType: campaignType || 'intro'
     });
 
     // Optionally save to DB if leadId provided
