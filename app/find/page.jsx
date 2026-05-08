@@ -168,7 +168,22 @@ export default function FindPage() {
     }
   }, [leafletReady])
 
+  const [searchHistory, setSearchHistory] = useState([])
+
+  useEffect(() => {
+    const history = JSON.parse(localStorage.getItem('search_history') || '[]')
+    setSearchHistory(history)
+  }, [])
+
+  const addToHistory = (q) => {
+    const newHistory = [q, ...searchHistory.filter(h => h !== q)].slice(0, 5)
+    setSearchHistory(newHistory)
+    localStorage.setItem('search_history', JSON.stringify(newHistory))
+  }
+
   async function runSearch(save = false) {
+    if (!query.trim()) return
+    addToHistory(query)
     setLoading(true)
     try {
       const res = await fetch('/api/scrape', { 
@@ -186,6 +201,8 @@ export default function FindPage() {
   }
 
   async function runPlacesSearch() {
+    if (!query.trim()) return
+    addToHistory(query)
     setLoading(true)
     try {
       const res = await fetch(`/api/places-search?q=${encodeURIComponent(query)}`)
@@ -270,26 +287,49 @@ export default function FindPage() {
         </div>
       </div>
 
-      <div className="glass-card p-2 md:p-3 overflow-hidden shadow-2xl shadow-indigo-500/10">
-        <div className="flex flex-col md:flex-row gap-2">
-          <div className="relative flex-1">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" size={20} />
-            <input 
-              value={query} 
-              onChange={(e) => setQuery(e.target.value)} 
-              placeholder="What are you looking for? (e.g. Cafes in Ghaziabad)"
-              className="w-full pl-12 pr-4 py-4 bg-transparent text-lg font-medium focus:outline-none placeholder:text-slate-300" 
-              onKeyDown={(e) => e.key === 'Enter' && (searchMethod === 'places' ? runPlacesSearch() : runSearch())}
-            />
+      <div className="space-y-3">
+        <div className="glass-card p-2 md:p-3 overflow-hidden shadow-2xl shadow-indigo-500/10">
+          <div className="flex flex-col md:flex-row gap-2">
+            <div className="relative flex-1">
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" size={20} />
+              <input 
+                value={query} 
+                onChange={(e) => setQuery(e.target.value)} 
+                placeholder="What are you looking for? (e.g. Cafes in Ghaziabad)"
+                className="w-full pl-12 pr-4 py-4 bg-transparent text-lg font-medium focus:outline-none placeholder:text-slate-300" 
+                onKeyDown={(e) => e.key === 'Enter' && (searchMethod === 'places' ? runPlacesSearch() : runSearch())}
+              />
+            </div>
+            <button 
+              onClick={searchMethod === 'places' ? runPlacesSearch : () => runSearch(false)} 
+              disabled={loading}
+              className="btn-premium h-auto py-4 px-10 text-base"
+            >
+              {loading ? <Loader2 size={24} className="animate-spin" /> : 'Search Now'}
+            </button>
           </div>
-          <button 
-            onClick={searchMethod === 'places' ? runPlacesSearch : () => runSearch(false)} 
-            disabled={loading}
-            className="btn-premium h-auto py-4 px-10 text-base"
-          >
-            {loading ? <Loader2 size={24} className="animate-spin" /> : 'Search Now'}
-          </button>
         </div>
+
+        {searchHistory.length > 0 && (
+          <div className="flex flex-wrap items-center gap-2 px-2">
+            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Recent:</span>
+            {searchHistory.map((h, i) => (
+              <button 
+                key={i} 
+                onClick={() => setQuery(h)}
+                className="px-3 py-1 bg-white border border-slate-200 rounded-full text-xs font-bold text-slate-500 hover:border-indigo-300 hover:text-indigo-600 transition-all"
+              >
+                {h}
+              </button>
+            ))}
+            <button 
+              onClick={() => { setSearchHistory([]); localStorage.removeItem('search_history'); }}
+              className="text-[10px] font-bold text-rose-400 hover:text-rose-600 ml-2"
+            >
+              Clear
+            </button>
+          </div>
+        )}
       </div>
 
       <div className="grid lg:grid-cols-[1fr,350px] gap-8">
