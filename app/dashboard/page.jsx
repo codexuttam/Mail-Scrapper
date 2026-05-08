@@ -45,7 +45,7 @@ function Modal({ isOpen, onClose, title, children }) {
   )
 }
 
-function LeadRow({ lead, onGenerate, onSend, onDelete, onMagic, isMagicLoading, onUpdate }) {
+function LeadRow({ lead, onGenerate, onSend, onDelete, onMagic, isMagicLoading, onUpdate, isSelected, onToggleSelect }) {
   const [notes, setNotes] = useState(lead.notes || '')
   const [isUpdating, setIsUpdating] = useState(false)
 
@@ -64,107 +64,117 @@ function LeadRow({ lead, onGenerate, onSend, onDelete, onMagic, isMagicLoading, 
   }
 
   return (
-    <div className="glass-card mb-4 p-5 flex flex-col md:flex-row md:items-center justify-between gap-4 card-hover border-l-4 border-l-transparent hover:border-l-indigo-500 transition-all">
-      <div className="flex-1">
-        <div className="flex items-center gap-3 mb-1">
-          <h3 className="font-bold text-lg text-slate-900">{lead.name}</h3>
+    <div className={`glass-card mb-4 p-5 flex flex-col md:flex-row md:items-center justify-between gap-4 card-hover border-l-4 transition-all ${isSelected ? 'border-l-indigo-600 bg-indigo-50/50 dark:bg-indigo-900/10' : 'border-l-transparent hover:border-l-indigo-500'}`}>
+      <div className="flex items-start gap-4 flex-1">
+        <div className="pt-1.5">
+           <input 
+             type="checkbox" 
+             checked={isSelected} 
+             onChange={() => onToggleSelect(lead._id)}
+             className="w-5 h-5 rounded-lg text-indigo-600 focus:ring-indigo-500 border-slate-300 dark:border-slate-700 dark:bg-slate-800 cursor-pointer"
+           />
+        </div>
+        <div className="flex-1">
+          <div className="flex items-center gap-3 mb-1">
+            <h3 className="font-bold text-lg text-slate-900 dark:text-white">{lead.name}</h3>
+            
+            <select 
+              value={lead.status || 'new'} 
+              onChange={(e) => handleStatusChange(e.target.value)}
+              className={`text-[10px] font-bold px-2 py-0.5 rounded-full border uppercase tracking-wider outline-none cursor-pointer transition-all ${
+                lead.status === 'sent' ? 'bg-emerald-50 text-emerald-700 border-emerald-100 dark:bg-emerald-900/20 dark:text-emerald-400 dark:border-emerald-800' :
+                lead.status === 'interested' ? 'bg-blue-50 text-blue-700 border-blue-100 dark:bg-blue-900/20 dark:text-blue-400 dark:border-blue-800' :
+                lead.status === 'replied' ? 'bg-purple-50 text-purple-700 border-purple-100 dark:bg-purple-900/20 dark:text-purple-400 dark:border-purple-800' :
+                lead.status === 'rejected' ? 'bg-rose-50 text-rose-700 border-rose-100 dark:bg-rose-900/20 dark:text-rose-400 dark:border-rose-800' :
+                'bg-indigo-50 text-indigo-700 border-indigo-100 dark:bg-indigo-900/20 dark:text-indigo-400 dark:border-indigo-800'
+              }`}
+            >
+              <option value="new">New</option>
+              <option value="sent">Sent</option>
+              <option value="interested">Interested</option>
+              <option value="replied">Replied</option>
+              <option value="rejected">Rejected</option>
+            </select>
+
+            {isUpdating && <Loader2 size={12} className="animate-spin text-slate-400" />}
+          </div>
+          <div className="flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400 mb-2">
+            <MapPin size={14} className="text-slate-400" />
+            <span className="truncate max-w-xs">{lead.address}</span>
+          </div>
           
-          <select 
-            value={lead.status || 'new'} 
-            onChange={(e) => handleStatusChange(e.target.value)}
-            className={`text-[10px] font-bold px-2 py-0.5 rounded-full border uppercase tracking-wider outline-none cursor-pointer transition-all ${
-              lead.status === 'sent' ? 'bg-emerald-50 text-emerald-700 border-emerald-100' :
-              lead.status === 'interested' ? 'bg-blue-50 text-blue-700 border-blue-100' :
-              lead.status === 'replied' ? 'bg-purple-50 text-purple-700 border-purple-100' :
-              lead.status === 'rejected' ? 'bg-rose-50 text-rose-700 border-rose-100' :
-              'bg-indigo-50 text-indigo-700 border-indigo-100'
-            }`}
-          >
-            <option value="new">New</option>
-            <option value="sent">Sent</option>
-            <option value="interested">Interested</option>
-            <option value="replied">Replied</option>
-            <option value="rejected">Rejected</option>
-          </select>
+          <div className="mb-3">
+            <input 
+              type="text" 
+              placeholder="Add a private note..." 
+              className="w-full bg-slate-50 border-none text-[11px] py-1 px-2 rounded focus:ring-1 focus:ring-indigo-200 outline-none placeholder:italic placeholder:text-slate-300 text-slate-600 dark:bg-slate-800 dark:text-slate-300 dark:placeholder:text-slate-600"
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
+              onBlur={handleNotesBlur}
+            />
+          </div>
 
-          {isUpdating && <Loader2 size={12} className="animate-spin text-slate-400" />}
-        </div>
-        <div className="flex items-center gap-2 text-sm text-slate-500 mb-2">
-          <MapPin size={14} className="text-slate-400" />
-          <span className="truncate max-w-xs">{lead.address}</span>
-        </div>
-        
-        <div className="mb-3">
-          <input 
-            type="text" 
-            placeholder="Add a private note..." 
-            className="w-full bg-slate-50 border-none text-[11px] py-1 px-2 rounded focus:ring-1 focus:ring-indigo-200 outline-none placeholder:italic placeholder:text-slate-300 text-slate-600"
-            value={notes}
-            onChange={(e) => setNotes(e.target.value)}
-            onBlur={handleNotesBlur}
-          />
-        </div>
-
-        <div className="flex flex-wrap gap-4 items-center">
-           <div className="flex items-center gap-1.5 text-xs font-medium">
-              <Mail size={12} className={lead.email ? "text-indigo-400" : "text-slate-300"} />
-              {lead.email ? (
-                <span className="text-slate-600 font-bold">{lead.email}</span>
-              ) : lead.phone ? (
-                <button 
-                  onClick={() => {
-                    let cleaned = lead.phone.replace(/[^0-9]/g, '');
-                    if (cleaned.startsWith('0')) cleaned = cleaned.substring(1);
-                    const final = cleaned.length === 10 ? `91${cleaned}` : cleaned;
-                    const url = `https://web.whatsapp.com/send?phone=${final}`;
-                    window.open(url, '_blank', 'noopener,noreferrer');
-                  }}
-                  className="text-slate-500 font-bold flex items-center gap-1.5 hover:text-emerald-600 transition-colors"
-                >
-                   {lead.phone}
-                </button>
-              ) : (
-                <span className="text-rose-300 italic font-medium flex items-center gap-1">
-                   No Email Found 
-                   <span className="w-1.5 h-1.5 bg-rose-400 rounded-full animate-pulse inline-block"></span>
-                </span>
-              )}
-           </div>
-           {lead.lastSentAt && (
-             <div className="flex items-center gap-1.5 text-xs font-medium text-slate-400">
-                <Calendar size={12} />
-                {formatDate(lead.lastSentAt)}
-             </div>
-           )}
-           {lead.website && (
-             <a href={lead.website} target="_blank" rel="noreferrer" className="flex items-center gap-1 text-xs font-bold text-indigo-500 hover:text-indigo-700 transition-colors bg-indigo-50 px-2 py-1 rounded-md">
-               Website
-             </a>
-           )}
-           {lead.socials && Object.values(lead.socials).some(Boolean) && (
-             <div className="flex items-center gap-2 border-l border-slate-200 pl-3">
-                {lead.socials.instagram && (
-                  <a href={lead.socials.instagram} target="_blank" rel="noreferrer" className="text-slate-400 hover:text-pink-600 transition-colors" title="Instagram">
-                    <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line></svg>
-                  </a>
-                )}
-                {lead.socials.facebook && (
-                  <a href={lead.socials.facebook} target="_blank" rel="noreferrer" className="text-slate-400 hover:text-blue-600 transition-colors" title="Facebook">
-                    <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"></path></svg>
-                  </a>
-                )}
-                {lead.socials.linkedin && (
-                  <a href={lead.socials.linkedin} target="_blank" rel="noreferrer" className="text-slate-400 hover:text-blue-500 transition-colors" title="LinkedIn">
-                    <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"></path><rect x="2" y="9" width="4" height="12"></rect><circle cx="4" cy="4" r="2"></circle></svg>
-                  </a>
-                )}
-                {lead.socials.twitter && (
-                  <a href={lead.socials.twitter} target="_blank" rel="noreferrer" className="text-slate-400 hover:text-sky-500 transition-colors" title="Twitter/X">
-                    <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round"><path d="M23 3a10.9 10.9 0 0 1-3.14 1.53 4.48 4.48 0 0 0-7.86 3v1A10.66 10.66 0 0 1 3 4s-4 9 5 13a11.64 11.64 0 0 1-7 2c9 5 20 0 20-11.5a4.5 4.5 0 0 0-.08-.83A7.72 7.72 0 0 0 23 3z"></path></svg>
-                  </a>
+          <div className="flex flex-wrap gap-4 items-center">
+             <div className="flex items-center gap-1.5 text-xs font-medium">
+                <Mail size={12} className={lead.email ? "text-indigo-400" : "text-slate-300"} />
+                {lead.email ? (
+                  <span className="text-slate-600 font-bold dark:text-slate-400">{lead.email}</span>
+                ) : lead.phone ? (
+                  <button 
+                    onClick={() => {
+                      let cleaned = lead.phone.replace(/[^0-9]/g, '');
+                      if (cleaned.startsWith('0')) cleaned = cleaned.substring(1);
+                      const final = cleaned.length === 10 ? `91${cleaned}` : cleaned;
+                      const url = `https://web.whatsapp.com/send?phone=${final}`;
+                      window.open(url, '_blank', 'noopener,noreferrer');
+                    }}
+                    className="text-slate-500 font-bold flex items-center gap-1.5 hover:text-emerald-600 transition-colors"
+                  >
+                     {lead.phone}
+                  </button>
+                ) : (
+                  <span className="text-rose-300 italic font-medium flex items-center gap-1">
+                     No Email Found 
+                     <span className="w-1.5 h-1.5 bg-rose-400 rounded-full animate-pulse inline-block"></span>
+                  </span>
                 )}
              </div>
-           )}
+             {lead.lastSentAt && (
+               <div className="flex items-center gap-1.5 text-xs font-medium text-slate-400">
+                  <Calendar size={12} />
+                  {formatDate(lead.lastSentAt)}
+               </div>
+             )}
+             {lead.website && (
+               <a href={lead.website} target="_blank" rel="noreferrer" className="flex items-center gap-1 text-xs font-bold text-indigo-500 hover:text-indigo-700 transition-colors bg-indigo-50 px-2 py-1 rounded-md dark:bg-indigo-900/30 dark:text-indigo-400">
+                 Website
+               </a>
+             )}
+             {lead.socials && Object.values(lead.socials).some(Boolean) && (
+               <div className="flex items-center gap-2 border-l border-slate-200 pl-3 dark:border-slate-800">
+                  {lead.socials.instagram && (
+                    <a href={lead.socials.instagram} target="_blank" rel="noreferrer" className="text-slate-400 hover:text-pink-600 transition-colors" title="Instagram">
+                      <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line></svg>
+                    </a>
+                  )}
+                  {lead.socials.facebook && (
+                    <a href={lead.socials.facebook} target="_blank" rel="noreferrer" className="text-slate-400 hover:text-blue-600 transition-colors" title="Facebook">
+                      <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"></path></svg>
+                    </a>
+                  )}
+                  {lead.socials.linkedin && (
+                    <a href={lead.socials.linkedin} target="_blank" rel="noreferrer" className="text-slate-400 hover:text-blue-500 transition-colors" title="LinkedIn">
+                      <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"></path><rect x="2" y="9" width="4" height="12"></rect><circle cx="4" cy="4" r="2"></circle></svg>
+                    </a>
+                  )}
+                  {lead.socials.twitter && (
+                    <a href={lead.socials.twitter} target="_blank" rel="noreferrer" className="text-slate-400 hover:text-sky-500 transition-colors" title="Twitter/X">
+                      <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round"><path d="M23 3a10.9 10.9 0 0 1-3.14 1.53 4.48 4.48 0 0 0-7.86 3v1A10.66 10.66 0 0 1 3 4s-4 9 5 13a11.64 11.64 0 0 1-7 2c9 5 20 0 20-11.5a4.5 4.5 0 0 0-.08-.83A7.72 7.72 0 0 0 23 3z"></path></svg>
+                    </a>
+                  )}
+               </div>
+             )}
+          </div>
         </div>
       </div>
       
@@ -489,6 +499,41 @@ function DashboardContent() {
     }
   }
 
+  const [selectedLeads, setSelectedLeads] = useState([])
+
+  const toggleSelect = (id) => {
+    setSelectedLeads(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id])
+  }
+
+  const toggleSelectAll = () => {
+    if (selectedLeads.length === paginatedLeads.length) {
+      setSelectedLeads([])
+    } else {
+      setSelectedLeads(paginatedLeads.map(l => l._id))
+    }
+  }
+
+  async function handleBulkDelete() {
+    if (!confirm(`Delete ${selectedLeads.length} selected leads?`)) return
+    setLoading(true)
+    try {
+      await Promise.all(selectedLeads.map(id => 
+        fetch('/api/leads', { 
+          method: 'DELETE', 
+          body: JSON.stringify({ id }), 
+          headers: { 'Content-Type': 'application/json' } 
+        })
+      ))
+      setLeads(cur => cur.filter(l => !selectedLeads.includes(l._id)))
+      setSelectedLeads([])
+      setNotice({ type: 'success', message: `Successfully deleted ${selectedLeads.length} leads.` })
+    } catch (err) {
+      setNotice({ type: 'error', message: 'Bulk delete failed: ' + err.message })
+    } finally {
+      setLoading(false)
+    }
+  }
+
   async function handleUpdateLead(id, updates) {
     try {
       const res = await fetch('/api/leads', {
@@ -507,6 +552,33 @@ function DashboardContent() {
 
   return (
     <div className="space-y-8 pb-12">
+      {selectedLeads.length > 0 && (
+        <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-[90] animate-in slide-in-from-bottom-8">
+           <div className="bg-indigo-600 text-white px-6 py-4 rounded-3xl shadow-2xl flex items-center gap-6 border border-white/20 backdrop-blur-xl">
+              <div className="flex items-center gap-2">
+                 <span className="w-6 h-6 rounded-full bg-white text-indigo-600 flex items-center justify-center text-xs font-black">{selectedLeads.length}</span>
+                 <span className="text-sm font-bold">Leads Selected</span>
+              </div>
+              <div className="w-px h-6 bg-white/20"></div>
+              <div className="flex items-center gap-3">
+                 <button 
+                   onClick={handleBulkDelete}
+                   className="flex items-center gap-2 px-4 py-2 bg-white/10 hover:bg-white/20 rounded-xl transition-all text-sm font-bold"
+                 >
+                   <Trash2 size={16} />
+                   Delete Selected
+                 </button>
+                 <button 
+                   onClick={() => setSelectedLeads([])}
+                   className="text-white/60 hover:text-white transition-colors"
+                 >
+                   <X size={20} />
+                 </button>
+              </div>
+           </div>
+        </div>
+      )}
+
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div className="relative">
           <div className="absolute -left-4 top-0 w-1 h-full bg-indigo-600 rounded-full shadow-[0_0_15px_rgba(79,70,229,0.5)]"></div>
@@ -611,9 +683,17 @@ function DashboardContent() {
       <div className="grid lg:grid-cols-[1fr,400px] gap-8">
         <div className="space-y-4">
           <div className="flex flex-col md:flex-row md:items-center justify-between px-2 gap-4">
-             <span className="text-sm font-bold text-slate-400 uppercase tracking-widest">{filteredLeads.length} Leads in Pipeline</span>
+             <div className="flex items-center gap-4">
+                <span className="text-sm font-bold text-slate-400 uppercase tracking-widest">{filteredLeads.length} Leads in Pipeline</span>
+                <button 
+                  onClick={toggleSelectAll}
+                  className="text-[10px] font-black text-indigo-600 uppercase tracking-widest hover:underline"
+                >
+                  {selectedLeads.length === paginatedLeads.length && paginatedLeads.length > 0 ? 'Deselect All' : 'Select Page'}
+                </button>
+             </div>
              
-             <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-xl border border-slate-200">
+             <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-xl border border-slate-200 dark:bg-slate-900 dark:border-slate-800">
                 {[
                   { id: 'all', label: 'All' },
                   { id: 'email', label: 'Has Email' },
@@ -654,6 +734,8 @@ function DashboardContent() {
                   onMagic={handleMagic}
                   isMagicLoading={magicLoadingId === l._id} 
                   onUpdate={handleUpdateLead}
+                  isSelected={selectedLeads.includes(l._id)}
+                  onToggleSelect={toggleSelect}
                 />
               ))}
 
