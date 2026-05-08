@@ -235,6 +235,45 @@ function LeadRow({ lead, onGenerate, onSend, onDelete, onMagic, isMagicLoading, 
   )
 }
 
+function LeadGrowthChart({ leads }) {
+  const last7Days = [...Array(7)].map((_, i) => {
+    const d = new Date()
+    d.setDate(d.getDate() - i)
+    return d.toISOString().split('T')[0]
+  }).reverse()
+
+  const data = last7Days.map(date => ({
+    date,
+    count: leads.filter(l => l.createdAt?.split('T')[0] === date).length
+  }))
+
+  const max = Math.max(...data.map(d => d.count), 5)
+
+  return (
+    <div className="glass-card p-6 border-none shadow-sm h-full flex flex-col">
+       <div className="flex items-center justify-between mb-6">
+          <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Lead Growth (7D)</h4>
+          <TrendingUp size={14} className="text-emerald-500" />
+       </div>
+       <div className="flex-1 flex items-end gap-2 px-2">
+          {data.map((d, i) => (
+            <div key={i} className="flex-1 flex flex-col items-center gap-2 group">
+               <div 
+                 className="w-full bg-indigo-100 rounded-t-md group-hover:bg-indigo-500 transition-all relative"
+                 style={{ height: `${(d.count / max) * 100}%`, minHeight: '4px' }}
+               >
+                 <div className="absolute -top-6 left-1/2 -translate-x-1/2 bg-indigo-600 text-white text-[10px] font-bold px-1.5 py-0.5 rounded opacity-0 group-hover:opacity-100 transition-opacity">
+                    {d.count}
+                 </div>
+               </div>
+               <span className="text-[8px] font-bold text-slate-300 uppercase">{d.date.split('-')[2]}</span>
+            </div>
+          ))}
+       </div>
+    </div>
+  )
+}
+
 function DashboardContent() {
   const searchParams = useSearchParams()
   const { data: session } = useSession()
@@ -261,6 +300,7 @@ function DashboardContent() {
   const [currentPage, setCurrentPage] = useState(1)
   const [showCleanupModal, setShowCleanupModal] = useState(false)
   const itemsPerPage = 5
+  const itemsPerPageGrid = 5
 
   useEffect(() => {
     if (modalOpen) {
@@ -516,24 +556,28 @@ function DashboardContent() {
         </div>
       </div>
 
-      {/* Premium Stats Bar */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-         {[
-           { label: 'Total Leads', value: leads.length, color: 'indigo', icon: Search },
-           { label: 'Contacted', value: leads.filter(l => l.status === 'sent').length, color: 'emerald', icon: Send },
-           { label: 'Success Rate', value: leads.length ? Math.round((leads.filter(l => l.status === 'sent').length / leads.length) * 100) + '%' : '0%', color: 'amber', icon: Zap },
-           { label: 'Pending', value: leads.length - leads.filter(l => l.status === 'sent').length, color: 'blue', icon: Mail },
-         ].map((stat, i) => (
-           <div key={i} className="glass-card p-4 border-none shadow-sm flex items-center gap-4 group hover:bg-white transition-all cursor-default">
-              <div className={`p-3 rounded-xl bg-${stat.color}-50 text-${stat.color}-600 group-hover:scale-110 transition-transform`}>
-                 <stat.icon size={20} />
-              </div>
-              <div>
-                 <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{stat.label}</p>
-                 <p className="text-xl font-black text-slate-900">{stat.value}</p>
-              </div>
-           </div>
-         ))}
+      <div className="grid lg:grid-cols-4 gap-4">
+        <div className="lg:col-span-3 grid grid-cols-2 md:grid-cols-4 gap-4">
+           {[
+             { label: 'Total Leads', value: leads.length, color: 'indigo', icon: Search },
+             { label: 'Contacted', value: leads.filter(l => l.status === 'sent').length, color: 'emerald', icon: Send },
+             { label: 'Success Rate', value: leads.length ? Math.round((leads.filter(l => l.status === 'sent').length / leads.length) * 100) + '%' : '0%', color: 'amber', icon: Zap },
+             { label: 'Pending', value: leads.length - leads.filter(l => l.status === 'sent').length, color: 'blue', icon: Mail },
+           ].map((stat, i) => (
+             <div key={i} className="glass-card p-4 border-none shadow-sm flex items-center gap-4 group hover:bg-white transition-all cursor-default">
+                <div className={`p-3 rounded-xl bg-${stat.color}-50 text-${stat.color}-600 group-hover:scale-110 transition-transform`}>
+                   <stat.icon size={20} />
+                </div>
+                <div>
+                   <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{stat.label}</p>
+                   <p className="text-xl font-black text-slate-900">{stat.value}</p>
+                </div>
+             </div>
+           ))}
+        </div>
+        <div className="lg:col-span-1">
+           <LeadGrowthChart leads={leads} />
+        </div>
       </div>
 
       {notice && (
