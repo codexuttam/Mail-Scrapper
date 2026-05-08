@@ -1,8 +1,9 @@
 "use client"
 import { useEffect, useState, Suspense } from 'react'
+import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
 import { useSession } from 'next-auth/react'
-import { Mail, Trash2, Send, Wand2, RefreshCw, CheckCircle2, AlertCircle, Calendar, MapPin, X, Zap, Loader2, Search, MessageCircle, MessageSquare, AlertTriangle, Copy } from 'lucide-react'
+import { Mail, Trash2, Send, Wand2, RefreshCw, CheckCircle2, AlertCircle, Calendar, MapPin, X, Zap, Loader2, Search, MessageCircle, MessageSquare, AlertTriangle, Copy, TrendingUp, ExternalLink } from 'lucide-react'
 
 function formatDate(iso) {
   try {
@@ -76,7 +77,9 @@ function LeadRow({ lead, onGenerate, onSend, onDelete, onMagic, isMagicLoading, 
         </div>
         <div className="flex-1">
           <div className="flex items-center gap-3 mb-1">
-            <h3 className="font-bold text-lg text-slate-900 dark:text-white">{lead.name}</h3>
+            <Link href={`/dashboard/${lead._id}`} className="hover:underline">
+              <h3 className="font-bold text-lg text-slate-900 dark:text-white">{lead.name}</h3>
+            </Link>
             
             <select 
               value={lead.status || 'new'} 
@@ -115,6 +118,10 @@ function LeadRow({ lead, onGenerate, onSend, onDelete, onMagic, isMagicLoading, 
           </div>
 
           <div className="flex flex-wrap gap-4 items-center">
+             <Link href={`/dashboard/${lead._id}`} className="flex items-center gap-1.5 text-xs font-bold text-indigo-600 hover:text-indigo-800 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-900/30 px-2 py-1 rounded-md transition-colors">
+                <ExternalLink size={12} />
+                View Details
+             </Link>
              <div className="flex items-center gap-1.5 text-xs font-medium">
                 <Mail size={12} className={lead.email ? "text-indigo-400" : "text-slate-300"} />
                 {lead.email ? (
