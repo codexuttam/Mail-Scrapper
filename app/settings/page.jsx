@@ -13,6 +13,7 @@ export default function SettingsPage() {
     email: '',
     googleMapsApiKey: '',
     openaiApiKey: '',
+    aiModel: 'llama-3.3-70b-versatile',
     leadAlerts: true,
     outreachAlerts: true,
     milestoneAlerts: true,
@@ -35,6 +36,7 @@ export default function SettingsPage() {
             email: data.settings.email || '',
             googleMapsApiKey: data.settings.googleMapsApiKey || '',
             openaiApiKey: data.settings.openaiApiKey || '',
+            aiModel: data.settings.aiModel || 'llama-3.3-70b-versatile',
             leadAlerts: data.settings.leadAlerts ?? true,
             outreachAlerts: data.settings.outreachAlerts ?? true,
             milestoneAlerts: data.settings.milestoneAlerts ?? true,
@@ -239,20 +241,36 @@ export default function SettingsPage() {
 
                   <div className="space-y-2 pt-2">
                     <div className="flex justify-between items-center">
-                       <label className="text-xs font-bold text-slate-500 uppercase">OpenAI / Groq API Key</label>
+                       <label className="text-xs font-bold text-slate-500 uppercase dark:text-slate-400">OpenAI / Groq API Key</label>
                        {formData.openaiApiKey && <span className="text-[10px] text-emerald-600 font-black flex items-center gap-1"><ShieldCheck size={12} /> Active</span>}
                     </div>
                     <div className="relative">
-                      <Zap className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
-                      <input 
-                        type={showKeys ? "text" : "password"} 
-                        name="openaiApiKey"
-                        placeholder="gsk_..." 
-                        value={formData.openaiApiKey}
-                        onChange={handleChange}
-                        className="input-modern pl-10" 
-                      />
+                       <Zap className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
+                       <input 
+                         type={showKeys ? "text" : "password"} 
+                         name="openaiApiKey"
+                         placeholder="gsk_..." 
+                         value={formData.openaiApiKey}
+                         onChange={handleChange}
+                         className="input-modern pl-10 dark:bg-slate-800 dark:border-slate-700 dark:text-white" 
+                       />
                     </div>
+                  </div>
+
+                  <div className="space-y-2 pt-2">
+                    <label className="text-xs font-bold text-slate-500 uppercase dark:text-slate-400">Preferred AI Model</label>
+                    <select 
+                      name="aiModel"
+                      value={formData.aiModel}
+                      onChange={handleChange}
+                      className="input-modern dark:bg-slate-800 dark:border-slate-700 dark:text-white"
+                    >
+                      <option value="llama-3.3-70b-versatile">Llama 3.3 70B (Versatile)</option>
+                      <option value="llama-3.1-8b-instant">Llama 3.1 8B (Instant)</option>
+                      <option value="mixtral-8x7b-32768">Mixtral 8x7B (High Context)</option>
+                      <option value="gemma2-9b-it">Gemma 2 9B</option>
+                    </select>
+                    <p className="text-[10px] text-slate-400 italic">Llama 3.3 70B is recommended for best outreach quality.</p>
                   </div>
                 </div>
 

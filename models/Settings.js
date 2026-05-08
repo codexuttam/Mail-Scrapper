@@ -14,6 +14,7 @@ const SettingsSchema = new mongoose.Schema({
   smtpUser: { type: String },
   smtpPass: { type: String },
   smtpSecure: { type: Boolean, default: false },
+  aiModel: { type: String, default: 'llama-3.3-70b-versatile' },
   updatedAt: { type: Date, default: Date.now }
 });
 

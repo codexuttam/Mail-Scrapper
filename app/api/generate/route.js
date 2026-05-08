@@ -16,6 +16,7 @@ export async function POST(req) {
     await connect();
     const settings = await Settings.findOne();
     const senderName = settings?.fullName || 'Uttamraj Singh';
+    const model = settings?.aiModel || 'llama-3.3-70b-versatile';
 
     const message = await generateOutreach({ 
       name, 
@@ -24,7 +25,8 @@ export async function POST(req) {
       tone: tone || 'friendly', 
       senderName,
       channel: channel || 'email',
-      campaignType: campaignType || 'intro'
+      campaignType: campaignType || 'intro',
+      model
     });
 
     // Optionally save to DB if leadId provided
