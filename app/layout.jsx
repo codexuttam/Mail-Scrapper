@@ -2,17 +2,37 @@
 import './globals.css'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
-import { LayoutDashboard, Search, Mail, Settings, Zap, LogOut, HelpCircle, Menu, X } from 'lucide-react'
+import { useEffect, useState } from 'react'
+import { LayoutDashboard, Search, Mail, Settings, Zap, LogOut, HelpCircle, Menu, X, Moon, Sun } from 'lucide-react'
 import Header from '../components/Header'
 import Providers from '../components/Providers'
 import { signOut } from "next-auth/react"
-import { useState } from 'react'
 
 export default function RootLayout({ children }) {
   const pathname = usePathname()
   const router = useRouter()
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
+  const [isDarkMode, setIsDarkMode] = useState(false)
   const isAuthPage = pathname === '/login'
+
+  useEffect(() => {
+    const savedTheme = localStorage.getItem('theme')
+    if (savedTheme === 'dark') {
+      setIsDarkMode(true)
+      document.documentElement.classList.add('dark')
+    }
+  }, [])
+
+  const toggleDarkMode = () => {
+    setIsDarkMode(!isDarkMode)
+    if (!isDarkMode) {
+      document.documentElement.classList.add('dark')
+      localStorage.setItem('theme', 'dark')
+    } else {
+      document.documentElement.classList.remove('dark')
+      localStorage.setItem('theme', 'light')
+    }
+  }
 
   const handleLogout = () => {
     signOut({ callbackUrl: '/login' })
@@ -21,7 +41,7 @@ export default function RootLayout({ children }) {
   if (isAuthPage) {
     return (
       <html lang="en">
-        <body className="bg-slate-50 text-slate-900 font-sans">
+        <body className="bg-slate-50 text-slate-900 font-sans dark:bg-slate-950 dark:text-slate-100">
           <Providers>
             {children}
           </Providers>
@@ -37,35 +57,35 @@ export default function RootLayout({ children }) {
         <link rel="icon" href="/logo.png" />
         <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossOrigin="" />
       </head>
-      <body className="bg-slate-50 text-slate-900 font-sans selection:bg-indigo-100 selection:text-indigo-900">
+      <body className="bg-slate-50 text-slate-900 font-sans selection:bg-indigo-100 selection:text-indigo-900 dark:bg-slate-950 dark:text-slate-100">
         <Providers>
           <div className="flex min-h-screen">
             {/* Sidebar */}
-            <aside className="w-64 border-r bg-white flex flex-col hidden lg:flex sticky top-0 h-screen">
+            <aside className="w-64 border-r bg-white flex flex-col hidden lg:flex sticky top-0 h-screen dark:bg-slate-900 dark:border-slate-800">
               <div className="p-6">
                 <div className="flex items-center gap-3 mb-8">
                   <img src="/logo.png" alt="AutoClient Logo" className="w-10 h-10 object-contain" />
-                  <h1 className="text-xl font-black tracking-tight text-slate-900">Auto<span className="text-indigo-600">Client</span></h1>
+                  <h1 className="text-xl font-black tracking-tight text-slate-900 dark:text-white">Auto<span className="text-indigo-600">Client</span></h1>
                 </div>
                 
                 <nav className="space-y-1">
-                  <Link href="/" className={`nav-link ${pathname === '/' ? 'bg-indigo-50 text-indigo-600' : ''}`}>
+                  <Link href="/" className={`nav-link ${pathname === '/' ? 'bg-indigo-50 text-indigo-600 dark:bg-indigo-900/30 dark:text-indigo-400' : 'dark:text-slate-400 dark:hover:bg-slate-800'}`}>
                     <Search size={18} />
                     <span>Find Leads</span>
                   </Link>
-                  <Link href="/dashboard" className={`nav-link ${pathname === '/dashboard' ? 'bg-indigo-50 text-indigo-600' : ''}`}>
+                  <Link href="/dashboard" className={`nav-link ${pathname === '/dashboard' ? 'bg-indigo-50 text-indigo-600 dark:bg-indigo-900/30 dark:text-indigo-400' : 'dark:text-slate-400 dark:hover:bg-slate-800'}`}>
                     <LayoutDashboard size={18} />
                     <span>Dashboard</span>
                   </Link>
-                  <Link href="/outreach" className={`nav-link ${pathname === '/outreach' ? 'bg-indigo-50 text-indigo-600' : ''}`}>
+                  <Link href="/outreach" className={`nav-link ${pathname === '/outreach' ? 'bg-indigo-50 text-indigo-600 dark:bg-indigo-900/30 dark:text-indigo-400' : 'dark:text-slate-400 dark:hover:bg-slate-800'}`}>
                     <Mail size={18} />
                     <span>Outreach</span>
                   </Link>
-                  <Link href="/settings" className={`nav-link ${pathname === '/settings' ? 'bg-indigo-50 text-indigo-600' : ''}`}>
+                  <Link href="/settings" className={`nav-link ${pathname === '/settings' ? 'bg-indigo-50 text-indigo-600 dark:bg-indigo-900/30 dark:text-indigo-400' : 'dark:text-slate-400 dark:hover:bg-slate-800'}`}>
                     <Settings size={18} />
                     <span>Settings</span>
                   </Link>
-                  <Link href="/how-to-use" className={`nav-link ${pathname === '/how-to-use' ? 'bg-indigo-50 text-indigo-600' : ''}`}>
+                  <Link href="/how-to-use" className={`nav-link ${pathname === '/how-to-use' ? 'bg-indigo-50 text-indigo-600 dark:bg-indigo-900/30 dark:text-indigo-400' : 'dark:text-slate-400 dark:hover:bg-slate-800'}`}>
                     <HelpCircle size={18} />
                     <span>How to Use</span>
                   </Link>
@@ -74,20 +94,28 @@ export default function RootLayout({ children }) {
               
               <div className="mt-auto p-6 space-y-4">
                 <button 
+                  onClick={toggleDarkMode}
+                  className="w-full flex items-center gap-3 px-4 py-2 text-sm font-medium text-slate-600 hover:bg-slate-50 rounded-lg transition-colors dark:text-slate-400 dark:hover:bg-slate-800"
+                >
+                  {isDarkMode ? <Sun size={18} /> : <Moon size={18} />}
+                  <span>{isDarkMode ? 'Light Mode' : 'Dark Mode'}</span>
+                </button>
+
+                <button 
                   onClick={handleLogout}
-                  className="w-full flex items-center gap-3 px-4 py-2 text-sm font-medium text-rose-500 hover:bg-rose-50 rounded-lg transition-colors"
+                  className="w-full flex items-center gap-3 px-4 py-2 text-sm font-medium text-rose-500 hover:bg-rose-50 rounded-lg transition-colors dark:hover:bg-rose-900/10"
                 >
                   <LogOut size={18} />
                   <span>Log Out</span>
                 </button>
 
-                <div className="bg-slate-50 rounded-xl p-4 border border-slate-100 flex items-center gap-3">
-                  <div className="p-2 bg-indigo-100 text-indigo-600 rounded-lg">
+                <div className="bg-slate-50 rounded-xl p-4 border border-slate-100 flex items-center gap-3 dark:bg-slate-800 dark:border-slate-700">
+                  <div className="p-2 bg-indigo-100 text-indigo-600 rounded-lg dark:bg-indigo-900/50 dark:text-indigo-400">
                      <Zap size={16} fill="currentColor" />
                   </div>
                   <div>
-                    <p className="text-xs font-bold text-slate-500 uppercase">System Status</p>
-                    <p className="text-xs font-medium text-emerald-600">All services online</p>
+                    <p className="text-xs font-bold text-slate-500 uppercase dark:text-slate-400">System Status</p>
+                    <p className="text-xs font-medium text-emerald-600 dark:text-emerald-400">All services online</p>
                   </div>
                 </div>
               </div>
@@ -97,7 +125,7 @@ export default function RootLayout({ children }) {
             <div className="flex-1 flex flex-col min-h-screen">
               <Header onMenuClick={() => setIsMobileMenuOpen(true)} />
 
-              <main className="flex-1 p-4 md:p-8 bg-slate-50/50">
+              <main className="flex-1 p-4 md:p-8 bg-slate-50/50 dark:bg-slate-950/50">
                 <div className="max-w-5xl mx-auto animate-in">
                   {children}
                 </div>
@@ -109,13 +137,13 @@ export default function RootLayout({ children }) {
           {isMobileMenuOpen && (
             <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-[99] lg:hidden" onClick={() => setIsMobileMenuOpen(false)}>
                {/* Mobile Sidebar */}
-               <aside className="w-72 bg-white h-full flex flex-col animate-in slide-in-from-left duration-300" onClick={(e) => e.stopPropagation()}>
-                  <div className="p-6 border-b flex items-center justify-between">
+               <aside className="w-72 bg-white h-full flex flex-col animate-in slide-in-from-left duration-300 dark:bg-slate-900" onClick={(e) => e.stopPropagation()}>
+                  <div className="p-6 border-b flex items-center justify-between dark:border-slate-800">
                     <div className="flex items-center gap-3">
                        <img src="/logo.png" alt="AutoClient Logo" className="w-8 h-8 object-contain" />
-                       <h1 className="text-xl font-black text-slate-900">AutoClient</h1>
+                       <h1 className="text-xl font-black text-slate-900 dark:text-white">AutoClient</h1>
                     </div>
-                    <button onClick={() => setIsMobileMenuOpen(false)} className="p-2 hover:bg-slate-100 rounded-lg text-slate-500">
+                    <button onClick={() => setIsMobileMenuOpen(false)} className="p-2 hover:bg-slate-100 rounded-lg text-slate-500 dark:hover:bg-slate-800">
                       <X size={20} />
                     </button>
                   </div>
@@ -132,7 +160,7 @@ export default function RootLayout({ children }) {
                         key={item.href} 
                         href={item.href} 
                         onClick={() => setIsMobileMenuOpen(false)}
-                        className={`flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-all ${pathname === item.href ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-100' : 'text-slate-600 hover:bg-slate-50'}`}
+                        className={`flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-all ${pathname === item.href ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-100' : 'text-slate-600 hover:bg-slate-50 dark:text-slate-400 dark:hover:bg-slate-800'}`}
                       >
                         <item.icon size={20} />
                         <span>{item.label}</span>
@@ -140,8 +168,15 @@ export default function RootLayout({ children }) {
                     ))}
                   </nav>
 
-                  <div className="p-4 border-t">
-                     <button onClick={handleLogout} className="w-full flex items-center gap-3 px-4 py-3 text-rose-500 font-bold hover:bg-rose-50 rounded-xl transition-colors">
+                  <div className="p-4 border-t dark:border-slate-800">
+                     <button 
+                        onClick={toggleDarkMode}
+                        className="w-full flex items-center gap-3 px-4 py-3 text-slate-600 font-bold hover:bg-slate-50 rounded-xl transition-colors dark:text-slate-400 dark:hover:bg-slate-800 mb-2"
+                     >
+                        {isDarkMode ? <Sun size={20} /> : <Moon size={20} />}
+                        <span>{isDarkMode ? 'Light Mode' : 'Dark Mode'}</span>
+                     </button>
+                     <button onClick={handleLogout} className="w-full flex items-center gap-3 px-4 py-3 text-rose-500 font-bold hover:bg-rose-50 rounded-xl transition-colors dark:hover:bg-rose-900/10">
                         <LogOut size={20} />
                         <span>Log Out</span>
                      </button>
