@@ -611,6 +611,33 @@ function DashboardContent() {
                    AI Bulk Outreach
                  </button>
                  <button 
+                   onClick={async () => {
+                     setLoading(true);
+                     try {
+                       const res = await fetch('/api/webhooks/push', {
+                         method: 'POST',
+                         body: JSON.stringify({ leadIds: selectedLeads }),
+                         headers: { 'Content-Type': 'application/json' }
+                       });
+                       const data = await res.json();
+                       if (data.ok) {
+                         setNotice({ type: 'success', message: data.message });
+                         setSelectedLeads([]);
+                       } else {
+                         throw new Error(data.error);
+                       }
+                     } catch (err) {
+                       setNotice({ type: 'error', message: 'CRM Push failed: ' + err.message });
+                     } finally {
+                       setLoading(false);
+                     }
+                   }}
+                   className="flex items-center gap-2 px-4 py-2 bg-indigo-500/20 hover:bg-indigo-500/30 text-white rounded-xl transition-all text-sm font-bold border border-white/10"
+                 >
+                   <ExternalLink size={16} />
+                   Push to CRM
+                 </button>
+                 <button 
                    onClick={() => setSelectedLeads([])}
                    className="text-white/60 hover:text-white transition-colors"
                  >
