@@ -7,7 +7,11 @@ import { Mail, Trash2, Send, Wand2, RefreshCw, CheckCircle2, AlertCircle, Calend
 import { LeadSkeleton } from '../../components/Skeleton'
 
 function formatDate(iso) {
-// Wrap Dashboard in Suspense since useSearchParams is used
+  try {
+    const date = new Date(iso)
+    return new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }).format(date)
+  } catch (e) { return iso }
+}
 export default function DashboardPage() {
   return (
     <Suspense fallback={<div className="p-8 text-center animate-pulse text-slate-400">Loading Dashboard...</div>}>
