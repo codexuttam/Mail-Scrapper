@@ -4,14 +4,9 @@ import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
 import { useSession } from 'next-auth/react'
 import { Mail, Trash2, Send, Wand2, RefreshCw, CheckCircle2, AlertCircle, Calendar, MapPin, X, Zap, Loader2, Search, MessageCircle, MessageSquare, AlertTriangle, Copy, TrendingUp, ExternalLink } from 'lucide-react'
+import { LeadSkeleton } from '../../components/Skeleton'
 
 function formatDate(iso) {
-  try {
-    const date = new Date(iso)
-    return new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }).format(date)
-  } catch (e) { return iso }
-}
-
 // Wrap Dashboard in Suspense since useSearchParams is used
 export default function DashboardPage() {
   return (
@@ -781,14 +776,8 @@ function DashboardContent() {
           
           {loading && leads.length === 0 ? (
             <div className="space-y-4">
-               {[1,2,3].map(i => (
-                 <div key={i} className="h-28 bg-white/50 backdrop-blur-sm rounded-3xl border border-slate-100 flex items-center p-6 gap-4 animate-pulse">
-                    <div className="w-12 h-12 bg-slate-200 rounded-2xl"></div>
-                    <div className="flex-1 space-y-2">
-                       <div className="h-4 bg-slate-200 rounded-full w-1/3"></div>
-                       <div className="h-3 bg-slate-100 rounded-full w-1/4"></div>
-                    </div>
-                 </div>
+               {[1,2,3,4,5].map(i => (
+                 <LeadSkeleton key={i} />
                ))}
             </div>
           ) : leads.length > 0 ? (

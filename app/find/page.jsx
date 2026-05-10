@@ -1,6 +1,7 @@
 "use client"
 import { useState, useEffect, useRef } from 'react'
 import { Search, MapPin, Phone, Globe, Save, Loader2, Compass, Layers, Filter, Zap, Info, Camera, Users, MessageSquare } from 'lucide-react'
+import { ResultSkeleton } from '../../components/Skeleton'
 
 function ResultRow({ item, onSave }) {
   const [isSaving, setIsSaving] = useState(false)
@@ -374,14 +375,7 @@ export default function FindPage() {
                    </p>
                 </div>
                 {[1,2,3].map(i => (
-                   <div key={i} className="h-32 bg-white rounded-2xl border border-slate-100 animate-pulse flex p-5 gap-4">
-                      <div className="flex-1 space-y-3">
-                         <div className="h-6 w-1/2 bg-slate-100 rounded"></div>
-                         <div className="h-4 w-3/4 bg-slate-50 rounded"></div>
-                         <div className="h-4 w-1/4 bg-slate-50 rounded"></div>
-                      </div>
-                      <div className="w-32 h-10 bg-slate-100 rounded-lg"></div>
-                   </div>
+                   <ResultSkeleton key={i} />
                 ))}
              </div>
           ) : results.length > 0 ? (
