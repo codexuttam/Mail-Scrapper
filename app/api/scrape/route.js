@@ -3,6 +3,7 @@ export const dynamic = 'force-dynamic';
 import { getServerSession } from "next-auth/next"
 import { authOptions } from "../auth/[...nextauth]/route"
 import { scrapeBusinesses } from '../../../lib/scraper';
+import { generateSummary } from '../../../lib/openai';
 import connect from '../../../lib/db';
 import Lead from '../../../models/Lead';
 
@@ -16,6 +17,17 @@ export async function POST(req) {
     if (save && !session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
 
     const data = await scrapeBusinesses(query);
+
+    // Generate summaries for all leads
+    for (const item of data) {
+      if (item.websiteText) {
+        item.summary = await generateSummary({ 
+          name: item.name, 
+          type: query.split(' in ')[0] || 'business', 
+          websiteText: item.websiteText 
+        });
+      }
+    }
 
     // If save flag provided and DB configured, persist leads (upsert by name+address+userEmail)
     if (save && process.env.MONGODB_URI) {
@@ -32,6 +44,7 @@ export async function POST(req) {
           socials: item.socials || {},
           location: query,
           status: 'new',
+          summary: item.summary || '',
           userEmail: session.user.email
         };
         const doc = await Lead.findOneAndUpdate(filter, update, { upsert: true, new: true, setDefaultsOnInsert: true });

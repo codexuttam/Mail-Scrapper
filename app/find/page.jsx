@@ -36,6 +36,11 @@ function ResultRow({ item, onSave }) {
               <MapPin size={16} className="text-indigo-400 mt-0.5 shrink-0" />
               <span className="line-clamp-2 leading-snug">{item.address}</span>
             </div>
+            {item.summary && (
+              <p className="text-[11px] font-medium text-slate-500 italic mt-2 border-l-2 border-indigo-200 pl-3 leading-relaxed">
+                "{item.summary}"
+              </p>
+            )}
           </div>
 
           <div className="flex flex-wrap items-center gap-x-6 gap-y-3 pt-1">
@@ -253,6 +258,7 @@ export default function FindPage() {
         address: item.address, 
         website: item.website || item.link || '', 
         socials: item.socials,
+        summary: item.summary || '',
         location: query  
       }),
       headers: { 'Content-Type': 'application/json' } 

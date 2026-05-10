@@ -17,6 +17,7 @@ const LeadSchema = new mongoose.Schema({
   type: { type: String },
   status: { type: String, default: 'new' },
   notes: { type: String, default: '' },
+  summary: { type: String, default: '' },
   message: { type: String },
   lastSentAt: { type: Date },
   createdAt: { type: Date, default: Date.now }

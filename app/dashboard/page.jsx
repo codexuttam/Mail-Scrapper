@@ -106,6 +106,12 @@ function LeadRow({ lead, onGenerate, onSend, onDelete, onMagic, isMagicLoading, 
             <span className="truncate max-w-xs">{lead.address}</span>
           </div>
           
+          {lead.summary && (
+            <div className="mb-3 p-2 bg-indigo-50/50 dark:bg-indigo-900/10 rounded-lg border border-indigo-100/50 dark:border-indigo-800/50">
+               <p className="text-[11px] font-medium text-indigo-900 dark:text-indigo-200 leading-relaxed italic">"{lead.summary}"</p>
+            </div>
+          )}
+          
           <div className="mb-3">
             <input 
               type="text" 
