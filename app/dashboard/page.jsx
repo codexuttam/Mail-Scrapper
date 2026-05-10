@@ -582,6 +582,35 @@ function DashboardContent() {
                    Delete Selected
                  </button>
                  <button 
+                   onClick={async () => {
+                     if (!confirm(`Start AI outreach for ${selectedLeads.length} leads?`)) return;
+                     setLoading(true);
+                     try {
+                       const res = await fetch('/api/bulk-outreach', {
+                         method: 'POST',
+                         body: JSON.stringify({ leadIds: selectedLeads }),
+                         headers: { 'Content-Type': 'application/json' }
+                       });
+                       const data = await res.json();
+                       if (data.ok) {
+                         setNotice({ type: 'success', message: `Bulk outreach complete! Processed ${data.results.length} leads.` });
+                         load();
+                         setSelectedLeads([]);
+                       } else {
+                         throw new Error(data.error);
+                       }
+                     } catch (err) {
+                       setNotice({ type: 'error', message: 'Bulk outreach failed: ' + err.message });
+                     } finally {
+                       setLoading(false);
+                     }
+                   }}
+                   className="flex items-center gap-2 px-4 py-2 bg-white text-indigo-600 hover:bg-indigo-50 rounded-xl transition-all text-sm font-bold shadow-xl"
+                 >
+                   <Zap size={16} fill="currentColor" />
+                   AI Bulk Outreach
+                 </button>
+                 <button 
                    onClick={() => setSelectedLeads([])}
                    className="text-white/60 hover:text-white transition-colors"
                  >
