@@ -1,7 +1,7 @@
 "use client"
 import { useEffect, useState, Suspense } from 'react'
 import Link from 'next/link'
-import { useSearchParams } from 'next/navigation'
+import { useSearchParams, useRouter, usePathname } from 'next/navigation'
 import { useSession } from 'next-auth/react'
 import { Mail, Trash2, Send, Wand2, RefreshCw, CheckCircle2, AlertCircle, Calendar, MapPin, X, Zap, Loader2, Search, MessageCircle, MessageSquare, AlertTriangle, Copy, TrendingUp, ExternalLink, Tag, Plus } from 'lucide-react'
 import { LeadSkeleton } from '../../components/Skeleton'
@@ -347,6 +347,8 @@ function LeadGrowthChart({ leads }) {
 
 function DashboardContent() {
   const searchParams = useSearchParams()
+  const router = useRouter()
+  const pathname = usePathname()
   const { data: session } = useSession()
   const searchQuery = searchParams.get('q')?.toLowerCase() || ''
   
@@ -367,11 +369,26 @@ function DashboardContent() {
   const [selectedChannel, setSelectedChannel] = useState('email')
   const [modalSubject, setModalSubject] = useState('')
   const [modalTone, setModalTone] = useState('friendly')
-  const [contactFilter, setContactFilter] = useState('all') // all, email, phone
+  const [contactFilter, setContactFilter] = useState(searchParams.get('filter') || 'all') // all, email, phone
   const [currentPage, setCurrentPage] = useState(1)
+
+  const updateFilters = (key, value) => {
+    const params = new URLSearchParams(searchParams)
+    if (value && value !== 'all') {
+      params.set(key, value)
+    } else {
+      params.delete(key)
+    }
+    router.push(`${pathname}?${params.toString()}`)
+  }
   const [showCleanupModal, setShowCleanupModal] = useState(false)
   const itemsPerPage = 5
   const itemsPerPageGrid = 5
+
+  useEffect(() => {
+    const f = searchParams.get('filter') || 'all'
+    setContactFilter(f)
+  }, [searchParams])
 
   useEffect(() => {
     if (modalOpen) {
@@ -857,7 +874,7 @@ function DashboardContent() {
                 ].map(f => (
                   <button
                     key={f.id}
-                    onClick={() => { setContactFilter(f.id); setCurrentPage(1); }}
+                    onClick={() => { updateFilters('filter', f.id); setCurrentPage(1); }}
                     className={`px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all ${contactFilter === f.id ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-400 hover:bg-white/50'}`}
                   >
                     {f.label}
