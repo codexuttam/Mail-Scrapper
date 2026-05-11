@@ -3,7 +3,7 @@ import { useEffect, useState, Suspense } from 'react'
 import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
 import { useSession } from 'next-auth/react'
-import { Mail, Trash2, Send, Wand2, RefreshCw, CheckCircle2, AlertCircle, Calendar, MapPin, X, Zap, Loader2, Search, MessageCircle, MessageSquare, AlertTriangle, Copy, TrendingUp, ExternalLink } from 'lucide-react'
+import { Mail, Trash2, Send, Wand2, RefreshCw, CheckCircle2, AlertCircle, Calendar, MapPin, X, Zap, Loader2, Search, MessageCircle, MessageSquare, AlertTriangle, Copy, TrendingUp, ExternalLink, Tag, Plus } from 'lucide-react'
 import { LeadSkeleton } from '../../components/Skeleton'
 
 function formatDate(iso) {
@@ -63,6 +63,27 @@ function LeadRow({ lead, onGenerate, onSend, onDelete, onMagic, isMagicLoading, 
     setIsUpdating(false)
   }
 
+  const [tagInput, setTagInput] = useState('')
+  const [showTagInput, setShowTagInput] = useState(false)
+
+  const handleAddTag = async (e) => {
+    if (e.key === 'Enter' && tagInput.trim()) {
+      const newTags = [...(lead.tags || []), tagInput.trim()]
+      setIsUpdating(true)
+      await onUpdate(lead._id, { tags: newTags })
+      setTagInput('')
+      setShowTagInput(false)
+      setIsUpdating(false)
+    }
+  }
+
+  const removeTag = async (tagToRemove) => {
+    const newTags = (lead.tags || []).filter(t => t !== tagToRemove)
+    setIsUpdating(true)
+    await onUpdate(lead._id, { tags: newTags })
+    setIsUpdating(false)
+  }
+
   return (
     <div className={`glass-card mb-4 p-5 flex flex-col md:flex-row md:items-center justify-between gap-4 card-hover border-l-4 transition-all ${isSelected ? 'border-l-indigo-600 bg-indigo-50/50 dark:bg-indigo-900/10' : 'border-l-transparent hover:border-l-indigo-500'}`}>
       <div className="flex items-start gap-4 flex-1">
@@ -111,6 +132,34 @@ function LeadRow({ lead, onGenerate, onSend, onDelete, onMagic, isMagicLoading, 
             </div>
           )}
           
+          <div className="mb-3 flex flex-wrap gap-2 items-center">
+             {(lead.tags || []).map((tag, i) => (
+               <span key={i} className="flex items-center gap-1 px-2 py-0.5 bg-slate-100 text-slate-600 rounded text-[10px] font-bold dark:bg-slate-800 dark:text-slate-400">
+                 {tag}
+                 <button onClick={() => removeTag(tag)} className="hover:text-rose-500"><X size={10} /></button>
+               </span>
+             ))}
+             {showTagInput ? (
+               <input 
+                 autoFocus
+                 type="text" 
+                 className="bg-slate-50 border border-indigo-200 text-[10px] py-0.5 px-2 rounded outline-none w-24 dark:bg-slate-800 dark:border-indigo-900"
+                 value={tagInput}
+                 onChange={(e) => setTagInput(e.target.value)}
+                 onKeyDown={handleAddTag}
+                 onBlur={() => setShowTagInput(false)}
+                 placeholder="Press Enter"
+               />
+             ) : (
+               <button 
+                 onClick={() => setShowTagInput(true)}
+                 className="text-slate-400 hover:text-indigo-600 flex items-center gap-1 text-[10px] font-bold"
+               >
+                 <Plus size={12} /> Add Tag
+               </button>
+             )}
+          </div>
+
           <div className="mb-3">
             <input 
               type="text" 
