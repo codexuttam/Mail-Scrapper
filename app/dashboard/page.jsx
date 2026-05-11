@@ -546,6 +546,30 @@ function DashboardContent() {
     }
   }
 
+  async function handleBulkStatusUpdate(newStatus) {
+    if (!confirm(`Update status to "${newStatus}" for ${selectedLeads.length} leads?`)) return
+    setLoading(true)
+    try {
+      const res = await fetch('/api/leads', {
+        method: 'PATCH',
+        body: JSON.stringify({ ids: selectedLeads, updates: { status: newStatus } }),
+        headers: { 'Content-Type': 'application/json' }
+      })
+      const data = await res.json()
+      if (data.ok) {
+        setLeads(cur => cur.map(l => selectedLeads.includes(l._id) ? { ...l, status: newStatus } : l))
+        setSelectedLeads([])
+        setNotice({ type: 'success', message: `Successfully updated ${selectedLeads.length} leads to ${newStatus}.` })
+      } else {
+        throw new Error(data.error)
+      }
+    } catch (err) {
+      setNotice({ type: 'error', message: 'Bulk status update failed: ' + err.message })
+    } finally {
+      setLoading(false)
+    }
+  }
+
   async function handleUpdateLead(id, updates) {
     try {
       const res = await fetch('/api/leads', {
@@ -636,12 +660,27 @@ function DashboardContent() {
                    <ExternalLink size={16} />
                    Push to CRM
                  </button>
-                 <button 
-                   onClick={() => setSelectedLeads([])}
-                   className="text-white/60 hover:text-white transition-colors"
-                 >
-                   <X size={20} />
-                 </button>
+                  <div className="flex items-center gap-2 px-3 py-1 bg-white/10 rounded-xl border border-white/5">
+                     <span className="text-[10px] font-black uppercase opacity-60">Status:</span>
+                     <select 
+                       onChange={(e) => handleBulkStatusUpdate(e.target.value)}
+                       className="bg-transparent text-sm font-bold outline-none cursor-pointer"
+                       defaultValue=""
+                     >
+                       <option value="" disabled className="text-slate-900">Change...</option>
+                       <option value="new" className="text-slate-900">New</option>
+                       <option value="sent" className="text-slate-900">Sent</option>
+                       <option value="interested" className="text-slate-900">Interested</option>
+                       <option value="replied" className="text-slate-900">Replied</option>
+                       <option value="rejected" className="text-slate-900">Rejected</option>
+                     </select>
+                  </div>
+                  <button 
+                    onClick={() => setSelectedLeads([])}
+                    className="text-white/60 hover:text-white transition-colors"
+                  >
+                    <X size={20} />
+                  </button>
               </div>
            </div>
         </div>

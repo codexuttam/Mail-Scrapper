@@ -44,9 +44,18 @@ export async function PATCH(req) {
     const session = await getServerSession(authOptions)
     if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
 
-    const { id, updates } = await req.json();
-    if (!id) return NextResponse.json({ error: 'Missing lead id' }, { status: 400 });
+    const { id, ids, updates } = await req.json();
     await connect();
+
+    if (ids && Array.isArray(ids)) {
+      await Lead.updateMany(
+        { _id: { $in: ids }, userEmail: session.user.email },
+        { $set: updates }
+      );
+      return NextResponse.json({ ok: true });
+    }
+
+    if (!id) return NextResponse.json({ error: 'Missing lead id' }, { status: 400 });
     const lead = await Lead.findOneAndUpdate({ _id: id, userEmail: session.user.email }, updates, { new: true });
     return NextResponse.json({ lead });
   } catch (err) {
