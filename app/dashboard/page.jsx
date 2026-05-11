@@ -3,7 +3,7 @@ import { useEffect, useState, Suspense } from 'react'
 import Link from 'next/link'
 import { useSearchParams, useRouter, usePathname } from 'next/navigation'
 import { useSession } from 'next-auth/react'
-import { Mail, Trash2, Send, Wand2, RefreshCw, CheckCircle2, AlertCircle, Calendar, MapPin, X, Zap, Loader2, Search, MessageCircle, MessageSquare, AlertTriangle, Copy, TrendingUp, ExternalLink, Tag, Plus } from 'lucide-react'
+import { Mail, Trash2, Send, Wand2, RefreshCw, CheckCircle2, AlertCircle, Calendar, MapPin, X, Zap, Loader2, Search, MessageCircle, MessageSquare, AlertTriangle, Copy, TrendingUp, ExternalLink, Tag, Plus, PieChart } from 'lucide-react'
 import { LeadSkeleton } from '../../components/Skeleton'
 
 function formatDate(iso) {
@@ -377,6 +377,47 @@ function LeadGrowthChart({ leads }) {
                  </div>
                </div>
                <span className="text-[8px] font-bold text-slate-300 uppercase">{d.date.split('-')[2]}</span>
+            </div>
+          ))}
+       </div>
+    </div>
+  )
+}
+
+function StatusDistributionChart({ leads }) {
+  const statuses = ['new', 'sent', 'interested', 'replied', 'rejected']
+  const data = statuses.map(s => ({
+    status: s,
+    count: leads.filter(l => (l.status || 'new') === s).length
+  }))
+
+  const colors = {
+    new: 'bg-indigo-400',
+    sent: 'bg-emerald-400',
+    interested: 'bg-blue-400',
+    replied: 'bg-purple-400',
+    rejected: 'bg-rose-400'
+  }
+
+  return (
+    <div className="glass-card p-6 border-none shadow-sm h-full flex flex-col">
+       <div className="flex items-center justify-between mb-6">
+          <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Status Distribution</h4>
+          <PieChart size={14} className="text-indigo-500" />
+       </div>
+       <div className="space-y-3">
+          {data.map((d, i) => (
+            <div key={i} className="space-y-1">
+               <div className="flex justify-between text-[10px] font-bold uppercase tracking-tight">
+                  <span className="text-slate-500">{d.status}</span>
+                  <span className="text-slate-900">{d.count}</span>
+               </div>
+               <div className="w-full bg-slate-100 rounded-full h-1.5 dark:bg-slate-800">
+                  <div 
+                    className={`${colors[d.status]} h-full rounded-full transition-all duration-1000`} 
+                    style={{ width: `${(d.count / (leads.length || 1)) * 100}%` }}
+                  ></div>
+               </div>
             </div>
           ))}
        </div>
@@ -850,7 +891,7 @@ function DashboardContent() {
         </div>
       </div>
 
-      <div className="grid lg:grid-cols-4 gap-4">
+      <div className="grid lg:grid-cols-5 gap-4">
         <div className="lg:col-span-3 grid grid-cols-2 md:grid-cols-4 gap-4">
            {[
              { label: 'Total Leads', value: leads.length, color: 'indigo', icon: Search },
@@ -868,6 +909,9 @@ function DashboardContent() {
                 </div>
              </div>
            ))}
+        </div>
+        <div className="lg:col-span-1">
+           <StatusDistributionChart leads={leads} />
         </div>
         <div className="lg:col-span-1">
            <LeadGrowthChart leads={leads} />
