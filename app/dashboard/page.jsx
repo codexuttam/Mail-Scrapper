@@ -135,6 +135,13 @@ function LeadRow({ lead, onGenerate, onSend, onDelete, onMagic, isMagicLoading, 
             </select>
 
             {isUpdating && <Loader2 size={12} className="animate-spin text-slate-400" />}
+            
+            {lead.score > 0 && (
+              <div className="flex items-center gap-1 bg-amber-50 text-amber-700 px-2 py-0.5 rounded-full border border-amber-100 text-[10px] font-black dark:bg-amber-900/20 dark:text-amber-400 dark:border-amber-800">
+                <Zap size={10} fill="currentColor" />
+                {lead.score}/100
+              </div>
+            )}
           </div>
           <div className="flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400 mb-2">
             <MapPin size={14} className="text-slate-400" />
@@ -308,6 +315,23 @@ function LeadRow({ lead, onGenerate, onSend, onDelete, onMagic, isMagicLoading, 
           title={!lead.email ? "No Email Provided" : "Send Manual Outreach"}
         >
           <Send size={18} />
+        </button>
+        <button 
+          onClick={async () => {
+            setIsUpdating(true)
+            const res = await fetch('/api/leads/score', {
+              method: 'POST',
+              body: JSON.stringify({ id: lead._id }),
+              headers: { 'Content-Type': 'application/json' }
+            })
+            const data = await res.json()
+            if (data.lead) onUpdate(lead._id, data.lead)
+            setIsUpdating(false)
+          }} 
+          className="p-2.5 rounded-lg bg-amber-50 text-amber-600 hover:bg-amber-100 transition-colors"
+          title="Calculate Lead Score"
+        >
+          <TrendingUp size={18} />
         </button>
         <button 
           onClick={() => onDelete(lead)} 
