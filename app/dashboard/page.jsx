@@ -317,6 +317,17 @@ function LeadRow({ lead, onGenerate, onSend, onDelete, onMagic, isMagicLoading, 
           <Send size={18} />
         </button>
         <button 
+          onClick={() => {
+            const details = `Name: ${lead.name}\nEmail: ${lead.email || 'N/A'}\nPhone: ${lead.phone || 'N/A'}\nAddress: ${lead.address || 'N/A'}\nWebsite: ${lead.website || 'N/A'}\nStatus: ${lead.status || 'new'}\nScore: ${lead.score || 0}/100\nTags: ${(lead.tags || []).join(', ')}\nNotes: ${lead.notes || ''}`;
+            navigator.clipboard.writeText(details);
+            alert('Lead details copied to clipboard!');
+          }} 
+          className="p-2.5 rounded-lg bg-slate-100 text-slate-500 hover:bg-slate-200 transition-colors"
+          title="Copy Details to Clipboard"
+        >
+          <Copy size={18} />
+        </button>
+        <button 
           onClick={async () => {
             setIsUpdating(true)
             const res = await fetch('/api/leads/score', {
@@ -887,6 +898,24 @@ function DashboardContent() {
           >
             <RefreshCw size={18} className={loading ? 'animate-spin' : ''} />
             Refresh Pipeline
+          </button>
+          <button 
+            onClick={() => {
+              const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(leads, null, 2));
+              const downloadAnchorNode = document.createElement('a');
+              downloadAnchorNode.setAttribute("href", dataStr);
+              downloadAnchorNode.setAttribute("download", `leads_export_${new Date().toISOString().split('T')[0]}.json`);
+              document.body.appendChild(downloadAnchorNode);
+              downloadAnchorNode.click();
+              downloadAnchorNode.remove();
+            }}
+            disabled={loading || leads.length === 0}
+            className="p-3 rounded-2xl border border-slate-200 text-slate-500 hover:bg-slate-50 transition-all"
+            title="Export JSON"
+          >
+            <div className="flex items-center gap-2 text-xs font-bold">
+               <span className="uppercase text-[10px]">JSON</span>
+            </div>
           </button>
         </div>
       </div>
