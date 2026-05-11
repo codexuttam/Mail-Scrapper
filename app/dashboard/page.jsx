@@ -12,6 +12,21 @@ function formatDate(iso) {
     return new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }).format(date)
   } catch (e) { return iso }
 }
+
+function formatRelativeTime(iso) {
+  try {
+    const date = new Date(iso)
+    const now = new Date()
+    const diffInSeconds = Math.floor((now - date) / 1000)
+    
+    if (diffInSeconds < 60) return 'just now'
+    if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)}m ago`
+    if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)}h ago`
+    if (diffInSeconds < 604800) return `${Math.floor(diffInSeconds / 86400)}d ago`
+    
+    return formatDate(iso)
+  } catch (e) { return iso }
+}
 export default function DashboardPage() {
   return (
     <Suspense fallback={<div className="p-8 text-center animate-pulse text-slate-400">Loading Dashboard...</div>}>
@@ -203,7 +218,7 @@ function LeadRow({ lead, onGenerate, onSend, onDelete, onMagic, isMagicLoading, 
              {lead.lastSentAt && (
                <div className="flex items-center gap-1.5 text-xs font-medium text-slate-400">
                   <Calendar size={12} />
-                  {formatDate(lead.lastSentAt)}
+                  {formatRelativeTime(lead.lastSentAt)}
                </div>
              )}
              {lead.website && (
