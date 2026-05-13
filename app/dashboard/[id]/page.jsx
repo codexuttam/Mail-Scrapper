@@ -1,8 +1,18 @@
 "use client"
 import { useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
-import { ArrowLeft, Mail, Phone, MapPin, Globe, Calendar, Tag, MessageSquare, Save, Trash2, Loader2, ExternalLink } from 'lucide-react'
+import { ArrowLeft, Mail, Phone, MapPin, Globe, Calendar, Tag, MessageSquare, Save, Trash2, Loader2, ExternalLink, Search, Stethoscope, Utensils, Dumbbell, Store, Briefcase, Zap } from 'lucide-react'
 import Link from 'next/link'
+
+function getLeadIcon(name = '', type = '') {
+  const n = (name || '').toLowerCase()
+  const t = (type || '').toLowerCase()
+  if (n.includes('dental') || n.includes('clinic') || t.includes('health')) return <Stethoscope size={20} />
+  if (n.includes('restaurant') || n.includes('cafe') || n.includes('food') || t.includes('food')) return <Utensils size={20} />
+  if (n.includes('gym') || n.includes('fitness') || t.includes('gym')) return <Dumbbell size={20} />
+  if (n.includes('store') || n.includes('shop') || t.includes('retail')) return <Store size={20} />
+  return <Briefcase size={20} />
+}
 
 export default function LeadDetailsPage() {
   const { id } = useParams()
@@ -59,20 +69,37 @@ export default function LeadDetailsPage() {
         <div className="lg:col-span-2 space-y-6">
            <div className="glass-card p-8 dark:bg-slate-900/50">
               <div className="flex items-start justify-between mb-8">
-                 <div>
-                    <h1 className="text-3xl font-black text-slate-900 dark:text-white mb-2">{lead.name}</h1>
-                    <div className="flex items-center gap-2">
-                       <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border ${
-                         lead.status === 'sent' ? 'bg-emerald-50 text-emerald-700 border-emerald-100 dark:bg-emerald-900/20 dark:text-emerald-400' : 'bg-indigo-50 text-indigo-700 border-indigo-100 dark:bg-indigo-900/20 dark:text-indigo-400'
-                       }`}>
-                          {lead.status || 'New'}
-                       </span>
-                       <span className="text-xs text-slate-400 font-medium flex items-center gap-1">
-                          <Calendar size={12} />
-                          Found on {new Date(lead.createdAt).toLocaleDateString()}
-                       </span>
-                    </div>
-                 </div>
+                  <div className="flex items-center gap-4 mb-2">
+                     <div className="p-3 bg-indigo-50 text-indigo-600 rounded-2xl dark:bg-indigo-900/30 dark:text-indigo-400">
+                        {getLeadIcon(lead.name, lead.type)}
+                     </div>
+                     <h1 className="text-4xl font-black text-slate-900 dark:text-white">{lead.name}</h1>
+                  </div>
+                  <div className="flex flex-wrap items-center gap-3">
+                     <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border ${
+                       lead.status === 'sent' ? 'bg-emerald-50 text-emerald-700 border-emerald-100 dark:bg-emerald-900/20 dark:text-emerald-400' : 
+                       lead.status === 'interested' ? 'bg-blue-50 text-blue-700 border-blue-100 dark:bg-blue-900/20 dark:text-blue-400' :
+                       'bg-indigo-50 text-indigo-700 border-indigo-100 dark:bg-indigo-900/20 dark:text-indigo-400'
+                     }`}>
+                        {lead.status || 'New'}
+                     </span>
+                     {lead.score > 0 && (
+                       <div className="flex items-center gap-1 bg-amber-50 text-amber-700 px-3 py-1 rounded-full border border-amber-100 text-[10px] font-black dark:bg-amber-900/20 dark:text-amber-400">
+                         <Zap size={12} fill="currentColor" />
+                         {lead.score}/100 Score
+                       </div>
+                     )}
+                     {lead.source && (
+                       <div className="flex items-center gap-1 bg-slate-50 text-slate-500 px-3 py-1 rounded-full border border-slate-100 text-[10px] font-black dark:bg-slate-900/20 dark:text-slate-400">
+                         <Search size={12} />
+                         {lead.source}
+                       </div>
+                     )}
+                     <span className="text-xs text-slate-400 font-medium flex items-center gap-1">
+                        <Calendar size={12} />
+                        Captured {new Date(lead.createdAt).toLocaleDateString()}
+                     </span>
+                  </div>
                  <div className="flex gap-2">
                     {lead.website && (
                       <a href={lead.website} target="_blank" rel="noreferrer" className="p-2 bg-slate-100 text-slate-600 rounded-xl hover:bg-indigo-600 hover:text-white transition-all dark:bg-slate-800 dark:text-slate-400">
@@ -121,6 +148,18 @@ export default function LeadDetailsPage() {
                  </div>
               </div>
            </div>
+
+           {lead.summary && (
+              <div className="glass-card p-8 bg-indigo-600 text-white border-none shadow-indigo-200">
+                 <h3 className="text-xs font-black uppercase tracking-widest mb-4 opacity-70 flex items-center gap-2">
+                    <Wand2 size={16} />
+                    AI Business Intelligence
+                 </h3>
+                 <p className="text-lg font-medium leading-relaxed italic">
+                    "{lead.summary}"
+                 </p>
+              </div>
+           )}
 
            <div className="glass-card p-8 dark:bg-slate-900/50">
               <div className="flex items-center justify-between mb-6">
