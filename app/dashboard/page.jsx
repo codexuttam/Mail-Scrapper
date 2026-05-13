@@ -3,7 +3,7 @@ import { useEffect, useState, Suspense } from 'react'
 import Link from 'next/link'
 import { useSearchParams, useRouter, usePathname } from 'next/navigation'
 import { useSession } from 'next-auth/react'
-import { Mail, Trash2, Send, Wand2, RefreshCw, CheckCircle2, AlertCircle, Calendar, MapPin, X, Zap, Loader2, Search, MessageCircle, MessageSquare, AlertTriangle, Copy, TrendingUp, ExternalLink, Tag, Plus, PieChart, Download, Stethoscope, Utensils, Dumbbell, Store, Briefcase } from 'lucide-react'
+import { Mail, Trash2, Send, Wand2, RefreshCw, CheckCircle2, AlertCircle, Calendar, MapPin, X, Zap, Loader2, Search, MessageCircle, MessageSquare, AlertTriangle, Copy, TrendingUp, ExternalLink, Tag, Plus, PieChart, Download, Stethoscope, Utensils, Dumbbell, Store, Briefcase, Archive } from 'lucide-react'
 import { LeadSkeleton } from '../../components/Skeleton'
 
 function formatDate(iso) {
@@ -70,7 +70,7 @@ function Modal({ isOpen, onClose, title, children }) {
   )
 }
 
-function LeadRow({ lead, onGenerate, onSend, onDelete, onMagic, isMagicLoading, onUpdate, isSelected, onToggleSelect }) {
+function LeadRow({ lead, onGenerate, onSend, onDelete, onArchive, onMagic, isMagicLoading, onUpdate, isSelected, onToggleSelect }) {
   const [notes, setNotes] = useState(lead.notes || '')
   const [isUpdating, setIsUpdating] = useState(false)
 
@@ -363,6 +363,13 @@ function LeadRow({ lead, onGenerate, onSend, onDelete, onMagic, isMagicLoading, 
           title="Calculate Lead Score"
         >
           <TrendingUp size={18} />
+        </button>
+        <button 
+          onClick={() => onArchive(lead)} 
+          className="p-2.5 rounded-lg bg-slate-100 text-slate-500 hover:bg-slate-200 transition-colors"
+          title="Archive Lead"
+        >
+          <Archive size={18} />
         </button>
         <button 
           onClick={() => onDelete(lead)} 
@@ -764,6 +771,45 @@ function DashboardContent() {
     }
   }
 
+  async function handleArchive(lead) {
+    try {
+      const res = await fetch('/api/leads', {
+        method: 'PATCH',
+        body: JSON.stringify({ id: lead._id, updates: { archived: true } }),
+        headers: { 'Content-Type': 'application/json' }
+      })
+      const data = await res.json()
+      if (data.lead) {
+        setLeads(cur => cur.filter(l => l._id !== lead._id))
+        setNotice({ type: 'success', message: `Lead "${lead.name}" archived.` })
+      }
+    } catch (err) {
+      setNotice({ type: 'error', message: 'Archive failed: ' + err.message })
+    }
+  }
+
+  async function handleBulkArchive() {
+    if (!confirm(`Archive ${selectedLeads.length} selected leads?`)) return
+    setLoading(true)
+    try {
+      const res = await fetch('/api/leads', {
+        method: 'PATCH',
+        body: JSON.stringify({ ids: selectedLeads, updates: { archived: true } }),
+        headers: { 'Content-Type': 'application/json' }
+      })
+      const data = await res.json()
+      if (data.ok) {
+        setLeads(cur => cur.filter(l => !selectedLeads.includes(l._id)))
+        setSelectedLeads([])
+        setNotice({ type: 'success', message: `Successfully archived ${selectedLeads.length} leads.` })
+      }
+    } catch (err) {
+      setNotice({ type: 'error', message: 'Bulk archive failed: ' + err.message })
+    } finally {
+      setLoading(false)
+    }
+  }
+
   async function handleBulkDelete() {
     if (!confirm(`Delete ${selectedLeads.length} selected leads?`)) return
     setLoading(true)
@@ -842,6 +888,13 @@ function DashboardContent() {
                   >
                     <Download size={16} />
                     Export CSV
+                  </button>
+                  <button 
+                    onClick={handleBulkArchive}
+                    className="flex items-center gap-2 px-4 py-2 bg-white/10 hover:bg-white/20 rounded-xl transition-all text-sm font-bold"
+                  >
+                    <Archive size={16} />
+                    Archive
                   </button>
                  <button 
                    onClick={handleBulkDelete}
@@ -1124,6 +1177,7 @@ function DashboardContent() {
                   onGenerate={handleGenerate} 
                   onSend={handleSendClick} 
                   onDelete={handleDelete}
+                  onArchive={handleArchive}
                   onMagic={handleMagic}
                   isMagicLoading={magicLoadingId === l._id} 
                   onUpdate={handleUpdateLead}

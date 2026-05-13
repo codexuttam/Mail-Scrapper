@@ -13,7 +13,7 @@ export async function GET(req) {
     await connect();
     const url = new URL(req.url);
     const status = url.searchParams.get('status');
-    const filter = { userEmail: session.user.email };
+    const filter = { userEmail: session.user.email, archived: { $ne: true } };
     if (status) filter.status = status;
     const leads = await Lead.find(filter).sort({ createdAt: -1 }).lean();
     return NextResponse.json({ leads });
