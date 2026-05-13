@@ -1272,6 +1272,23 @@ function DashboardContent() {
               </div>
             )}
 
+            <div className="flex flex-wrap gap-1.5">
+               <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest mr-1 self-center">Quick Templates:</span>
+              {[
+                { label: 'Intro', text: `Hi ${modalLead?.name},\n\nI noticed your business and wanted to reach out regarding a potential collaboration.`, subject: `Partnership Opportunity for ${modalLead?.name}` },
+                { label: 'Follow-up', text: `Hi ${modalLead?.name},\n\nJust following up on my previous message. Are you still interested?`, subject: 'Quick Follow-up' },
+                { label: 'Discount', text: `Hi ${modalLead?.name},\n\nWe're offering a special rate on our services this week. Would you like to hear more?`, subject: 'Special Offer for you' }
+              ].map(tpl => (
+                <button
+                  key={tpl.label}
+                  onClick={() => { setModalMessage(tpl.text); if (selectedChannel === 'email') setModalSubject(tpl.subject); }}
+                  className="px-2 py-1 bg-slate-50 border border-slate-100 rounded-lg text-[9px] font-bold text-slate-500 hover:bg-indigo-50 hover:text-indigo-600 hover:border-indigo-100 transition-all"
+                >
+                  {tpl.label}
+                </button>
+              ))}
+            </div>
+
             <div className="relative group">
               <textarea 
                 className="w-full h-40 p-4 rounded-2xl bg-slate-50 border-none focus:ring-2 focus:ring-indigo-500/20 outline-none transition-all resize-none text-xs leading-relaxed text-slate-700 placeholder:text-slate-300"
