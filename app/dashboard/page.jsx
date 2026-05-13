@@ -970,20 +970,22 @@ function DashboardContent() {
         </div>
       </div>
 
-      <div className="grid lg:grid-cols-5 gap-4">
-        <div className="lg:col-span-3 grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div className="grid lg:grid-cols-6 gap-4">
+        <div className="lg:col-span-4 grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-4">
            {[
              { label: 'Total Leads', value: leads.length, color: 'indigo', icon: Search },
              { label: 'Contacted', value: leads.filter(l => l.status === 'sent').length, color: 'emerald', icon: Send },
-             { label: 'Success Rate', value: leads.length ? Math.round((leads.filter(l => l.status === 'sent').length / leads.length) * 100) + '%' : '0%', color: 'amber', icon: Zap },
-             { label: 'Pending', value: leads.length - leads.filter(l => l.status === 'sent').length, color: 'blue', icon: Mail },
+             { label: 'Interested', value: leads.filter(l => l.status === 'interested').length, color: 'blue', icon: MessageSquare },
+             { label: 'High Potential', value: leads.filter(l => l.score >= 80).length, color: 'rose', icon: Zap },
+             { label: 'Pending', value: leads.length - leads.filter(l => l.status === 'sent').length, color: 'amber', icon: Mail },
+             { label: 'Success Rate', value: leads.length ? Math.round((leads.filter(l => l.status === 'sent').length / leads.length) * 100) + '%' : '0%', color: 'emerald', icon: TrendingUp },
            ].map((stat, i) => (
              <div key={i} className="glass-card p-4 border-none shadow-sm flex items-center gap-4 group hover:bg-white transition-all cursor-default">
                 <div className={`p-3 rounded-xl bg-${stat.color}-50 text-${stat.color}-600 group-hover:scale-110 transition-transform`}>
                    <stat.icon size={20} />
                 </div>
                 <div>
-                   <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{stat.label}</p>
+                   <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-tight">{stat.label}</p>
                    <p className="text-xl font-black text-slate-900">{stat.value}</p>
                 </div>
              </div>
