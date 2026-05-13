@@ -3,7 +3,7 @@ import { useEffect, useState, Suspense } from 'react'
 import Link from 'next/link'
 import { useSearchParams, useRouter, usePathname } from 'next/navigation'
 import { useSession } from 'next-auth/react'
-import { Mail, Trash2, Send, Wand2, RefreshCw, CheckCircle2, AlertCircle, Calendar, MapPin, X, Zap, Loader2, Search, MessageCircle, MessageSquare, AlertTriangle, Copy, TrendingUp, ExternalLink, Tag, Plus, PieChart } from 'lucide-react'
+import { Mail, Trash2, Send, Wand2, RefreshCw, CheckCircle2, AlertCircle, Calendar, MapPin, X, Zap, Loader2, Search, MessageCircle, MessageSquare, AlertTriangle, Copy, TrendingUp, ExternalLink, Tag, Plus, PieChart, Download } from 'lucide-react'
 import { LeadSkeleton } from '../../components/Skeleton'
 
 function formatDate(iso) {
@@ -682,6 +682,36 @@ function DashboardContent() {
     }
   }
 
+  const handleExport = () => {
+    const selectedData = leads.filter(l => selectedLeads.includes(l._id))
+    const headers = ['Name', 'Email', 'Phone', 'Address', 'Website', 'Status', 'Score', 'Tags', 'Notes']
+    const csvContent = [
+      headers.join(','),
+      ...selectedData.map(l => [
+        `"${l.name || ''}"`,
+        `"${l.email || ''}"`,
+        `"${l.phone || ''}"`,
+        `"${l.address || ''}"`,
+        `"${l.website || ''}"`,
+        `"${l.status || ''}"`,
+        `"${l.score || 0}"`,
+        `"${(l.tags || []).join('; ')}"`,
+        `"${l.notes || ''}"`
+      ].join(','))
+    ].join('\n')
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
+    const url = URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    link.setAttribute('href', url)
+    link.setAttribute('download', `leads_export_${new Date().toISOString().split('T')[0]}.csv`)
+    link.style.visibility = 'hidden'
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+    setNotice({ type: 'success', message: `Exported ${selectedData.length} leads to CSV.` })
+  }
+
   async function handleBulkDelete() {
     if (!confirm(`Delete ${selectedLeads.length} selected leads?`)) return
     setLoading(true)
@@ -754,6 +784,13 @@ function DashboardContent() {
               </div>
               <div className="w-px h-6 bg-white/20"></div>
               <div className="flex items-center gap-3">
+                  <button 
+                    onClick={handleExport}
+                    className="flex items-center gap-2 px-4 py-2 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 rounded-xl transition-all text-sm font-bold border border-emerald-500/20"
+                  >
+                    <Download size={16} />
+                    Export CSV
+                  </button>
                  <button 
                    onClick={handleBulkDelete}
                    className="flex items-center gap-2 px-4 py-2 bg-white/10 hover:bg-white/20 rounded-xl transition-all text-sm font-bold"
