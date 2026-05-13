@@ -3,7 +3,7 @@ import { useEffect, useState, Suspense } from 'react'
 import Link from 'next/link'
 import { useSearchParams, useRouter, usePathname } from 'next/navigation'
 import { useSession } from 'next-auth/react'
-import { Mail, Trash2, Send, Wand2, RefreshCw, CheckCircle2, AlertCircle, Calendar, MapPin, X, Zap, Loader2, Search, MessageCircle, MessageSquare, AlertTriangle, Copy, TrendingUp, ExternalLink, Tag, Plus, PieChart, Download } from 'lucide-react'
+import { Mail, Trash2, Send, Wand2, RefreshCw, CheckCircle2, AlertCircle, Calendar, MapPin, X, Zap, Loader2, Search, MessageCircle, MessageSquare, AlertTriangle, Copy, TrendingUp, ExternalLink, Tag, Plus, PieChart, Download, Stethoscope, Utensils, Dumbbell, Store, Briefcase } from 'lucide-react'
 import { LeadSkeleton } from '../../components/Skeleton'
 
 function formatDate(iso) {
@@ -26,6 +26,16 @@ function formatRelativeTime(iso) {
     
     return formatDate(iso)
   } catch (e) { return iso }
+}
+
+function getLeadIcon(name = '', type = '') {
+  const n = (name || '').toLowerCase()
+  const t = (type || '').toLowerCase()
+  if (n.includes('dental') || n.includes('clinic') || t.includes('health')) return <Stethoscope size={16} />
+  if (n.includes('restaurant') || n.includes('cafe') || n.includes('food') || t.includes('food')) return <Utensils size={16} />
+  if (n.includes('gym') || n.includes('fitness') || t.includes('gym')) return <Dumbbell size={16} />
+  if (n.includes('store') || n.includes('shop') || t.includes('retail')) return <Store size={16} />
+  return <Briefcase size={16} />
 }
 export default function DashboardPage() {
   return (
@@ -112,7 +122,10 @@ function LeadRow({ lead, onGenerate, onSend, onDelete, onMagic, isMagicLoading, 
         </div>
         <div className="flex-1">
           <div className="flex items-center gap-3 mb-1">
-            <Link href={`/dashboard/${lead._id}`} className="hover:underline">
+            <Link href={`/dashboard/${lead._id}`} className="hover:underline flex items-center gap-2">
+              <div className="p-1 bg-slate-100 dark:bg-slate-800 rounded text-slate-500">
+                {getLeadIcon(lead.name, lead.type)}
+              </div>
               <h3 className="font-bold text-lg text-slate-900 dark:text-white">{lead.name}</h3>
             </Link>
             
