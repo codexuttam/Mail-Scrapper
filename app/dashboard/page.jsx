@@ -481,6 +481,7 @@ function DashboardContent() {
   const [modalSubject, setModalSubject] = useState('')
   const [modalTone, setModalTone] = useState('friendly')
   const [contactFilter, setContactFilter] = useState(searchParams.get('filter') || 'all') // all, email, phone
+  const [sortBy, setSortBy] = useState(searchParams.get('sort') || 'newest')
   const [currentPage, setCurrentPage] = useState(1)
 
   const updateFilters = (key, value) => {
@@ -522,9 +523,17 @@ function DashboardContent() {
     return matchesSearch
   })
 
-  const totalPages = Math.ceil(filteredLeads.length / itemsPerPage)
+  const sortedLeads = [...filteredLeads].sort((a, b) => {
+    if (sortBy === 'newest') return new Date(b.createdAt) - new Date(a.createdAt)
+    if (sortBy === 'oldest') return new Date(a.createdAt) - new Date(b.createdAt)
+    if (sortBy === 'score') return (b.score || 0) - (a.score || 0)
+    if (sortBy === 'contacted') return new Date(b.lastSentAt || 0) - new Date(a.lastSentAt || 0)
+    return 0
+  })
+
+  const totalPages = Math.ceil(sortedLeads.length / itemsPerPage)
   const startIndex = (currentPage - 1) * itemsPerPage
-  const paginatedLeads = filteredLeads.slice(startIndex, startIndex + itemsPerPage)
+  const paginatedLeads = sortedLeads.slice(startIndex, startIndex + itemsPerPage)
 
   async function load() {
     setLoading(true)
@@ -1051,6 +1060,18 @@ function DashboardContent() {
                     {f.label}
                   </button>
                 ))}
+             </div>
+             <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-xl border border-slate-200 dark:bg-slate-900 dark:border-slate-800">
+                <select 
+                  value={sortBy}
+                  onChange={(e) => { setSortBy(e.target.value); updateFilters('sort', e.target.value); setCurrentPage(1); }}
+                  className="bg-transparent text-[10px] font-black uppercase tracking-wider px-3 py-1.5 outline-none cursor-pointer text-slate-500"
+                >
+                  <option value="newest">Newest First</option>
+                  <option value="oldest">Oldest First</option>
+                  <option value="score">Highest Score</option>
+                  <option value="contacted">Last Contacted</option>
+                </select>
              </div>
           </div>
           
