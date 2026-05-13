@@ -482,6 +482,7 @@ function DashboardContent() {
   const [modalTone, setModalTone] = useState('friendly')
   const [contactFilter, setContactFilter] = useState(searchParams.get('filter') || 'all') // all, email, phone
   const [sortBy, setSortBy] = useState(searchParams.get('sort') || 'newest')
+  const [bulkTag, setBulkTag] = useState('')
   const [currentPage, setCurrentPage] = useState(1)
 
   const updateFilters = (key, value) => {
@@ -741,6 +742,28 @@ function DashboardContent() {
     setNotice({ type: 'success', message: `Exported ${selectedData.length} leads to CSV.` })
   }
 
+  async function handleBulkTag() {
+    if (!bulkTag.trim()) return
+    setLoading(true)
+    try {
+      const res = await fetch('/api/leads', {
+        method: 'PATCH',
+        body: JSON.stringify({ ids: selectedLeads, tagsToAdd: bulkTag.trim() }),
+        headers: { 'Content-Type': 'application/json' }
+      })
+      const data = await res.json()
+      if (data.ok) {
+        setLeads(cur => cur.map(l => selectedLeads.includes(l._id) ? { ...l, tags: [...new Set([...(l.tags || []), bulkTag.trim()])] } : l))
+        setBulkTag('')
+        setNotice({ type: 'success', message: `Added tag "${bulkTag.trim()}" to ${selectedLeads.length} leads.` })
+      }
+    } catch (err) {
+      setNotice({ type: 'error', message: 'Bulk tagging failed: ' + err.message })
+    } finally {
+      setLoading(false)
+    }
+  }
+
   async function handleBulkDelete() {
     if (!confirm(`Delete ${selectedLeads.length} selected leads?`)) return
     setLoading(true)
@@ -897,6 +920,17 @@ function DashboardContent() {
                        <option value="replied" className="text-slate-900">Replied</option>
                        <option value="rejected" className="text-slate-900">Rejected</option>
                      </select>
+                  </div>
+                  <div className="flex items-center gap-2 px-3 py-1 bg-white/10 rounded-xl border border-white/5">
+                     <span className="text-[10px] font-black uppercase opacity-60">Tag:</span>
+                     <input 
+                       type="text"
+                       placeholder="Add tag..."
+                       className="bg-transparent text-sm font-bold outline-none placeholder:text-white/30 w-24"
+                       value={bulkTag}
+                       onChange={(e) => setBulkTag(e.target.value)}
+                       onKeyDown={(e) => e.key === 'Enter' && handleBulkTag()}
+                     />
                   </div>
                   <button 
                     onClick={() => setSelectedLeads([])}

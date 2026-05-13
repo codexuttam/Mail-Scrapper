@@ -44,14 +44,16 @@ export async function PATCH(req) {
     const session = await getServerSession(authOptions)
     if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
 
-    const { id, ids, updates } = await req.json();
+    const { id, ids, updates, tagsToAdd } = await req.json();
     await connect();
 
     if (ids && Array.isArray(ids)) {
-      await Lead.updateMany(
-        { _id: { $in: ids }, userEmail: session.user.email },
-        { $set: updates }
-      );
+      const query = { _id: { $in: ids }, userEmail: session.user.email };
+      const update = {};
+      if (updates) update.$set = updates;
+      if (tagsToAdd) update.$addToSet = { tags: { $each: Array.isArray(tagsToAdd) ? tagsToAdd : [tagsToAdd] } };
+      
+      await Lead.updateMany(query, update);
       return NextResponse.json({ ok: true });
     }
 
