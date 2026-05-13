@@ -110,7 +110,7 @@ function LeadRow({ lead, onGenerate, onSend, onDelete, onArchive, onMagic, isMag
   }
 
   return (
-    <div className={`glass-card mb-4 p-5 flex flex-col md:flex-row md:items-center justify-between gap-4 card-hover border-l-4 transition-all ${isSelected ? 'border-l-indigo-600 bg-indigo-50/50 dark:bg-indigo-900/10' : 'border-l-transparent hover:border-l-indigo-500'}`}>
+    <div className={`glass-card mb-4 p-5 flex flex-col md:flex-row md:items-center justify-between gap-4 card-hover border-l-4 transition-all card-stagger ${isSelected ? 'border-l-indigo-600 bg-indigo-50/50 dark:bg-indigo-900/10' : 'border-l-transparent hover:border-l-indigo-500'}`}>
       <div className="flex items-start gap-4 flex-1">
         <div className="pt-1.5">
            <input 
@@ -1083,7 +1083,7 @@ function DashboardContent() {
              { label: 'Pending', value: leads.length - leads.filter(l => l.status === 'sent').length, color: 'amber', icon: Mail },
              { label: 'Success Rate', value: leads.length ? Math.round((leads.filter(l => l.status === 'sent').length / leads.length) * 100) + '%' : '0%', color: 'emerald', icon: TrendingUp },
            ].map((stat, i) => (
-             <div key={i} className="glass-card p-4 border-none shadow-sm flex items-center gap-4 group hover:bg-white transition-all cursor-default">
+             <div key={i} className="glass-card p-4 border-none shadow-sm flex items-center gap-4 group hover:bg-white transition-all cursor-default card-stagger">
                 <div className={`p-3 rounded-xl bg-${stat.color}-50 text-${stat.color}-600 group-hover:scale-110 transition-transform`}>
                    <stat.icon size={20} />
                 </div>
