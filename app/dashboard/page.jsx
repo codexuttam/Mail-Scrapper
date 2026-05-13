@@ -155,6 +155,13 @@ function LeadRow({ lead, onGenerate, onSend, onDelete, onMagic, isMagicLoading, 
                 {lead.score}/100
               </div>
             )}
+
+            {lead.source && (
+              <div className="flex items-center gap-1 bg-slate-50 text-slate-500 px-2 py-0.5 rounded-full border border-slate-100 text-[10px] font-black dark:bg-slate-900/20 dark:text-slate-400 dark:border-slate-800">
+                <Search size={10} />
+                {lead.source}
+              </div>
+            )}
           </div>
           <div className="flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400 mb-2">
             <MapPin size={14} className="text-slate-400" />
