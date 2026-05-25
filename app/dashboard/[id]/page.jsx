@@ -1,7 +1,7 @@
 "use client"
 import { useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
-import { ArrowLeft, Mail, Phone, MapPin, Globe, Calendar, Tag, MessageSquare, Save, Trash2, Loader2, ExternalLink, Search, Stethoscope, Utensils, Dumbbell, Store, Briefcase, Zap } from 'lucide-react'
+import { ArrowLeft, Mail, Phone, MapPin, Globe, Calendar, Tag, MessageSquare, Save, Trash2, Loader2, ExternalLink, Search, Stethoscope, Utensils, Dumbbell, Store, Briefcase, Zap, Wand2 } from 'lucide-react'
 import Link from 'next/link'
 
 function getLeadIcon(name = '', type = '') {

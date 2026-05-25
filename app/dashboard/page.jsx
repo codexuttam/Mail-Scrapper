@@ -446,7 +446,7 @@ function LeadRow({ lead, onGenerate, onSend, onDelete, onArchive, onMagic, isMag
   )
 }
 
-function LeadGrowthChart({ leads }) {
+function LeadGrowthChart({ leads, activeDate, onSelectDate }) {
   const last7Days = [...Array(7)].map((_, i) => {
     const d = new Date()
     d.setDate(d.getDate() - i)
@@ -462,35 +462,66 @@ function LeadGrowthChart({ leads }) {
 
   return (
     <div className="glass-card p-6 border-none shadow-sm h-full flex flex-col">
-       <div className="flex items-center justify-between mb-6">
-          <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Lead Growth (7D)</h4>
+       <div className="flex items-center justify-between mb-4">
+          <div>
+            <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Lead Growth (7D)</h4>
+            <p className="text-[10px] text-slate-400 font-medium">Click a bar to filter leads</p>
+          </div>
           <TrendingUp size={14} className="text-emerald-500" />
        </div>
-       <div className="flex-1 flex items-end gap-2 px-2">
-          {data.map((d, i) => (
-            <div key={i} className="flex-1 flex flex-col items-center gap-2 group">
-               <div 
-                 className="w-full bg-indigo-100 rounded-t-md group-hover:bg-indigo-500 transition-all relative"
-                 style={{ height: `${(d.count / max) * 100}%`, minHeight: '4px' }}
-               >
-                 <div className="absolute -top-6 left-1/2 -translate-x-1/2 bg-indigo-600 text-white text-[10px] font-bold px-1.5 py-0.5 rounded opacity-0 group-hover:opacity-100 transition-opacity">
-                    {d.count}
+       <div className="flex-1 flex items-end gap-2 px-2 min-h-[140px] pt-6">
+          {data.map((d, i) => {
+            const isActive = activeDate === d.date
+            const formattedDay = new Date(d.date).toLocaleDateString(undefined, { weekday: 'short' })
+            return (
+              <div 
+                key={i} 
+                className="flex-1 flex flex-col items-center gap-2 group cursor-pointer"
+                onClick={() => onSelectDate(isActive ? null : d.date)}
+              >
+                 <div 
+                   className={`w-full rounded-t-md transition-all relative ${isActive ? 'bg-indigo-600 shadow-[0_-4px_10px_rgba(79,70,229,0.3)] animate-pulse' : 'bg-indigo-100 group-hover:bg-indigo-300'}`}
+                   style={{ height: `${(d.count / max) * 100}%`, minHeight: '6px' }}
+                 >
+                    <div className={`absolute -top-7 left-1/2 -translate-x-1/2 bg-indigo-600 text-white text-[9px] font-bold px-1.5 py-0.5 rounded transition-opacity ${isActive ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}>
+                       {d.count}
+                    </div>
                  </div>
-               </div>
-               <span className="text-[8px] font-bold text-slate-300 uppercase">{d.date.split('-')[2]}</span>
-            </div>
-          ))}
+                 <span className={`text-[8px] font-bold uppercase ${isActive ? 'text-indigo-600 font-black' : 'text-slate-400'}`}>
+                   {formattedDay}
+                 </span>
+              </div>
+            )
+          })}
        </div>
     </div>
   )
 }
 
-function StatusDistributionChart({ leads }) {
+function PipelineAnalyticsChart({ leads, activeStatus, onSelectStatus, activeSource, onSelectSource }) {
+  const [tab, setTab] = useState('status') // 'status' or 'source'
+
   const statuses = ['new', 'sent', 'interested', 'replied', 'rejected']
-  const data = statuses.map(s => ({
-    status: s,
+  const statusData = statuses.map(s => ({
+    key: s,
+    label: s,
     count: leads.filter(l => (l.status || 'new') === s).length
   }))
+
+  const sourcesMap = {}
+  leads.forEach(l => {
+    if (l.source) {
+      sourcesMap[l.source] = (sourcesMap[l.source] || 0) + 1
+    }
+  })
+  const sourceData = Object.entries(sourcesMap)
+    .map(([key, count]) => ({ key, label: key, count }))
+    .sort((a, b) => b.count - a.count)
+    .slice(0, 5)
+
+  const activeTab = tab === 'status' ? statusData : sourceData
+  const activeFilterVal = tab === 'status' ? activeStatus : activeSource
+  const onSelectFilter = tab === 'status' ? onSelectStatus : onSelectSource
 
   const colors = {
     new: 'bg-indigo-400',
@@ -500,27 +531,59 @@ function StatusDistributionChart({ leads }) {
     rejected: 'bg-rose-400'
   }
 
+  const getBarColor = (key) => {
+    if (tab === 'status') return colors[key] || 'bg-slate-400'
+    return 'bg-violet-400'
+  }
+
   return (
     <div className="glass-card p-6 border-none shadow-sm h-full flex flex-col">
-       <div className="flex items-center justify-between mb-6">
-          <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Status Distribution</h4>
+       <div className="flex items-center justify-between mb-4 border-b border-slate-100 pb-3 dark:border-slate-800">
+          <div className="flex gap-3">
+             <button 
+               onClick={() => setTab('status')}
+               className={`text-[10px] font-black uppercase tracking-widest pb-1 transition-all ${tab === 'status' ? 'text-indigo-600 border-b-2 border-indigo-600' : 'text-slate-400 hover:text-slate-600'}`}
+             >
+               Pipeline Status
+             </button>
+             <button 
+               onClick={() => setTab('source')}
+               className={`text-[10px] font-black uppercase tracking-widest pb-1 transition-all ${tab === 'source' ? 'text-indigo-600 border-b-2 border-indigo-600' : 'text-slate-400 hover:text-slate-600'}`}
+             >
+               Top Sources
+             </button>
+          </div>
           <PieChart size={14} className="text-indigo-500" />
        </div>
-       <div className="space-y-3">
-          {data.map((d, i) => (
-            <div key={i} className="space-y-1">
-               <div className="flex justify-between text-[10px] font-bold uppercase tracking-tight">
-                  <span className="text-slate-500">{d.status}</span>
-                  <span className="text-slate-900">{d.count}</span>
-               </div>
-               <div className="w-full bg-slate-100 rounded-full h-1.5 dark:bg-slate-800">
-                  <div 
-                    className={`${colors[d.status]} h-full rounded-full transition-all duration-1000`} 
-                    style={{ width: `${(d.count / (leads.length || 1)) * 100}%` }}
-                  ></div>
-               </div>
-            </div>
-          ))}
+       <div className="space-y-4 flex-1 flex flex-col justify-center">
+          {activeTab.length === 0 ? (
+            <p className="text-[11px] text-slate-400 text-center italic py-6">No data found</p>
+          ) : (
+            activeTab.map((d, i) => {
+              const isActive = activeFilterVal === d.key
+              const percent = leads.length ? Math.round((d.count / leads.length) * 100) : 0
+              return (
+                <div 
+                  key={i} 
+                  className={`space-y-1 cursor-pointer p-1.5 rounded-xl transition-all ${isActive ? 'bg-indigo-50/70 border border-indigo-100 dark:bg-indigo-950/20' : 'hover:bg-slate-50 dark:hover:bg-slate-800/50'}`}
+                  onClick={() => onSelectFilter(isActive ? null : d.key)}
+                >
+                   <div className="flex justify-between text-[10px] font-bold uppercase tracking-tight">
+                      <span className="text-slate-500">{d.label}</span>
+                      <span className="text-slate-900 dark:text-white flex items-center gap-1.5">
+                         {d.count} <span className="text-slate-400 font-medium">({percent}%)</span>
+                      </span>
+                   </div>
+                   <div className="w-full bg-slate-100 rounded-full h-2 dark:bg-slate-800">
+                      <div 
+                        className={`${getBarColor(d.key)} h-full rounded-full transition-all duration-500`} 
+                        style={{ width: `${percent}%` }}
+                      ></div>
+                   </div>
+                </div>
+              )
+            })
+          )}
        </div>
     </div>
   )
@@ -555,6 +618,9 @@ function DashboardContent() {
   const [sortBy, setSortBy] = useState(searchParams.get('sort') || 'newest')
   const [bulkTag, setBulkTag] = useState('')
   const [currentPage, setCurrentPage] = useState(1)
+  const [chartDateFilter, setChartDateFilter] = useState(null)
+  const [chartStatusFilter, setChartStatusFilter] = useState(null)
+  const [chartSourceFilter, setChartSourceFilter] = useState(null)
 
   const updateFilters = (key, value) => {
     const params = new URLSearchParams(searchParams)
@@ -590,9 +656,23 @@ function DashboardContent() {
                           l.address?.toLowerCase().includes(searchQuery) ||
                           l.email?.toLowerCase().includes(searchQuery)
     
-    if (contactFilter === 'email') return matchesSearch && !!l.email
-    if (contactFilter === 'phone') return matchesSearch && !!l.phone
-    return matchesSearch
+    let matches = matchesSearch
+    if (contactFilter === 'email') matches = matches && !!l.email
+    if (contactFilter === 'phone') matches = matches && !!l.phone
+
+    // Interactive chart filters
+    if (chartDateFilter) {
+      const createdDate = l.createdAt?.split('T')[0]
+      matches = matches && (createdDate === chartDateFilter)
+    }
+    if (chartStatusFilter) {
+      matches = matches && ((l.status || 'new') === chartStatusFilter)
+    }
+    if (chartSourceFilter) {
+      matches = matches && (l.source === chartSourceFilter)
+    }
+
+    return matches
   })
 
   const sortedLeads = [...filteredLeads].sort((a, b) => {
@@ -1293,13 +1373,13 @@ function DashboardContent() {
                      <Download size={16} />
                      Export CSV
                    </button>
-                    <button 
-                      onClick={handleExportPDF}
-                      className="flex items-center gap-2 px-4 py-2 bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-400 rounded-xl transition-all text-sm font-bold border border-indigo-500/20"
-                    >
-                      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6.72 13.821V21h10.56v-7.179M9 3h6v4H9V3zM4.5 16.5h15a2.25 2.25 0 002.25-2.25V9a2.25 2.25 0 00-2.25-2.25h-15A2.25 2.25 0 002.25 9v5.25A2.25 2.25 0 004.5 16.5z"></path></svg>
-                      Print Report
-                    </button>
+                   <button 
+                     onClick={handleExportPDF}
+                     className="flex items-center gap-2 px-4 py-2 bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-400 rounded-xl transition-all text-sm font-bold border border-indigo-500/20"
+                   >
+                     <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6.72 13.821V21h10.56v-7.179M9 3h6v4H9V3zM4.5 16.5h15a2.25 2.25 0 002.25-2.25V9a2.25 2.25 0 00-2.25-2.25h-15A2.25 2.25 0 002.25 9v5.25A2.25 2.25 0 004.5 16.5z"></path></svg>
+                     Print Report
+                   </button>
                    <button 
                      onClick={handleBulkArchive}
                      className="flex items-center gap-2 px-4 py-2 bg-white/10 hover:bg-white/20 rounded-xl transition-all text-sm font-bold"
@@ -1398,13 +1478,12 @@ function DashboardContent() {
                    </div>
                 </div>
               )}
-                                     <button 
-                    onClick={() => setSelectedLeads([])}
-                    className="text-white/60 hover:text-white transition-colors"
-                  >
-                    <X size={20} />
-                  </button>
-              </div>
+              <button 
+                onClick={() => setSelectedLeads([])}
+                className="text-white/60 hover:text-white transition-colors"
+              >
+                <X size={20} />
+              </button>
            </div>
         </div>
       )}
@@ -1548,33 +1627,40 @@ function DashboardContent() {
         </div>
       </div>
 
-      <div className="grid lg:grid-cols-6 gap-4">
-        <div className="lg:col-span-4 grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-4">
-           {[
-             { label: 'Total Leads', value: leads.length, color: 'indigo', icon: Search },
-             { label: 'Contacted', value: leads.filter(l => l.status === 'sent').length, color: 'emerald', icon: Send },
-             { label: 'Interested', value: leads.filter(l => l.status === 'interested').length, color: 'blue', icon: MessageSquare },
-             { label: 'High Potential', value: leads.filter(l => l.score >= 80).length, color: 'rose', icon: Zap },
-             { label: 'Pending', value: leads.length - leads.filter(l => l.status === 'sent').length, color: 'amber', icon: Mail },
-             { label: 'Success Rate', value: leads.length ? Math.round((leads.filter(l => l.status === 'sent').length / leads.length) * 100) + '%' : '0%', color: 'emerald', icon: TrendingUp },
-           ].map((stat, i) => (
-             <div key={i} className="glass-card p-4 border-none shadow-sm flex items-center gap-4 group hover:bg-white transition-all cursor-default card-stagger">
-                <div className={`p-3 rounded-xl bg-${stat.color}-50 text-${stat.color}-600 group-hover:scale-110 transition-transform`}>
-                   <stat.icon size={20} />
-                </div>
-                <div>
-                   <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-tight">{stat.label}</p>
-                   <p className="text-xl font-black text-slate-900">{stat.value}</p>
-                </div>
-             </div>
-           ))}
-        </div>
-        <div className="lg:col-span-1">
-           <StatusDistributionChart leads={leads} />
-        </div>
-        <div className="lg:col-span-1">
-           <LeadGrowthChart leads={leads} />
-        </div>
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+         {[
+           { label: 'Total Leads', value: leads.length, color: 'indigo', icon: Search },
+           { label: 'Contacted', value: leads.filter(l => l.status === 'sent').length, color: 'emerald', icon: Send },
+           { label: 'Interested', value: leads.filter(l => l.status === 'interested').length, color: 'blue', icon: MessageSquare },
+           { label: 'High Potential', value: leads.filter(l => l.score >= 80).length, color: 'rose', icon: Zap },
+           { label: 'Pending', value: leads.length - leads.filter(l => l.status === 'sent').length, color: 'amber', icon: Mail },
+           { label: 'Success Rate', value: leads.length ? Math.round((leads.filter(l => l.status === 'sent').length / leads.length) * 100) + '%' : '0%', color: 'emerald', icon: TrendingUp },
+         ].map((stat, i) => (
+           <div key={i} className="glass-card p-4 border-none shadow-sm flex items-center gap-4 group hover:bg-white transition-all cursor-default card-stagger">
+              <div className={`p-3 rounded-xl bg-${stat.color}-50 text-${stat.color}-600 group-hover:scale-110 transition-transform`}>
+                 <stat.icon size={20} />
+              </div>
+              <div>
+                 <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-tight">{stat.label}</p>
+                 <p className="text-xl font-black text-slate-900">{stat.value}</p>
+              </div>
+           </div>
+         ))}
+      </div>
+
+      <div className="grid lg:grid-cols-2 gap-6">
+         <PipelineAnalyticsChart 
+           leads={leads}
+           activeStatus={chartStatusFilter}
+           onSelectStatus={setChartStatusFilter}
+           activeSource={chartSourceFilter}
+           onSelectSource={setChartSourceFilter}
+         />
+         <LeadGrowthChart 
+           leads={leads}
+           activeDate={chartDateFilter}
+           onSelectDate={setChartDateFilter}
+         />
       </div>
 
       {notice && (
@@ -1592,6 +1678,40 @@ function DashboardContent() {
             </div>
           </div>
           <button onClick={() => setNotice(null)} className="p-2 hover:bg-black/5 rounded-full self-start"><X size={16}/></button>
+        </div>
+      )}
+
+      {(chartDateFilter || chartStatusFilter || chartSourceFilter) && (
+        <div className="flex flex-wrap items-center gap-2 px-2 py-1.5 bg-slate-50 rounded-xl border border-slate-100 dark:bg-slate-900/50 dark:border-slate-800 mb-2">
+          <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest pl-1">Active Chart Filters:</span>
+          {chartDateFilter && (
+            <span className="inline-flex items-center gap-1.5 bg-indigo-50 text-indigo-700 px-2.5 py-1 rounded-lg text-[10px] font-bold border border-indigo-100 dark:bg-indigo-950/20 dark:text-indigo-400 dark:border-indigo-900 uppercase">
+              Date: {chartDateFilter}
+              <button onClick={() => setChartDateFilter(null)} className="hover:text-indigo-900 font-bold dark:hover:text-indigo-200"><X size={10} /></button>
+            </span>
+          )}
+          {chartStatusFilter && (
+            <span className="inline-flex items-center gap-1.5 bg-emerald-50 text-emerald-700 px-2.5 py-1 rounded-lg text-[10px] font-bold border border-emerald-100 dark:bg-emerald-950/20 dark:text-emerald-400 dark:border-emerald-900 uppercase">
+              Status: {chartStatusFilter}
+              <button onClick={() => setChartStatusFilter(null)} className="hover:text-emerald-900 font-bold dark:hover:text-emerald-200"><X size={10} /></button>
+            </span>
+          )}
+          {chartSourceFilter && (
+            <span className="inline-flex items-center gap-1.5 bg-blue-50 text-blue-700 px-2.5 py-1 rounded-lg text-[10px] font-bold border border-blue-100 dark:bg-blue-950/20 dark:text-blue-400 dark:border-blue-900 uppercase">
+              Source: {chartSourceFilter}
+              <button onClick={() => setChartSourceFilter(null)} className="hover:text-blue-900 font-bold dark:hover:text-blue-200"><X size={10} /></button>
+            </span>
+          )}
+          <button 
+            onClick={() => {
+              setChartDateFilter(null)
+              setChartStatusFilter(null)
+              setChartSourceFilter(null)
+            }} 
+            className="text-[10px] font-bold text-rose-600 hover:text-rose-800 dark:text-rose-400 dark:hover:text-rose-300 underline uppercase tracking-widest pl-2"
+          >
+            Clear All
+          </button>
         </div>
       )}
 
