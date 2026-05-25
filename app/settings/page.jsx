@@ -22,7 +22,10 @@ export default function SettingsPage() {
     smtpUser: '',
     smtpPass: '',
     smtpSecure: false,
-    customPrompt: ''
+    customPrompt: '',
+    templateIntro: '',
+    templateOffer: '',
+    templatePartnership: ''
   })
   const [showKeys, setShowKeys] = useState(false)
 
@@ -46,7 +49,10 @@ export default function SettingsPage() {
             smtpUser: data.settings.smtpUser || '',
             smtpPass: data.settings.smtpPass || '',
             smtpSecure: data.settings.smtpSecure ?? false,
-            customPrompt: data.settings.customPrompt || ''
+            customPrompt: data.settings.customPrompt || '',
+            templateIntro: data.settings.templateIntro || '',
+            templateOffer: data.settings.templateOffer || '',
+            templatePartnership: data.settings.templatePartnership || ''
           })
         }
       } catch (err) {
@@ -125,6 +131,7 @@ export default function SettingsPage() {
   const navItems = [
     { id: 'general', label: 'General', icon: User },
     { id: 'api', label: 'API Keys', icon: Key },
+    { id: 'templates', label: 'Email Templates', icon: Mail },
     { id: 'notifications', label: 'Notifications', icon: Bell },
     { id: 'security', label: 'Security', icon: Shield },
   ]
@@ -214,6 +221,71 @@ export default function SettingsPage() {
                   >
                     {loading ? <Zap size={18} className="animate-spin" /> : <Save size={18} />}
                     {loading ? 'Saving...' : 'Save Changes'}
+                  </button>
+                </div>
+              </div>
+            </form>
+          )}
+
+          {activeTab === 'templates' && (
+            <form onSubmit={handleSave} className="animate-in slide-in-from-right-4 duration-300">
+              <div className="glass-card p-6 space-y-6">
+                <div className="space-y-4">
+                  <h3 className="font-bold text-lg text-slate-900 border-b pb-2">Outreach Email Templates</h3>
+                  <p className="text-xs text-slate-400">Define base templates for outreach email generation. Use <code>{"{{name}}"}</code> for the business name, and <code>{"{{location}}"}</code> for the city.</p>
+                  
+                  <div className="space-y-4">
+                    <div className="space-y-2">
+                      <label className="text-xs font-bold text-slate-500 uppercase">Intro Campaign Template</label>
+                      <textarea 
+                        name="templateIntro"
+                        value={formData.templateIntro}
+                        onChange={handleChange}
+                        placeholder="e.g. Hello {{name}},\n\nI came across your business in {{location}}..."
+                        rows={4}
+                        className="input-modern w-full font-mono text-xs" 
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <label className="text-xs font-bold text-slate-500 uppercase">Special Offer Template</label>
+                      <textarea 
+                        name="templateOffer"
+                        value={formData.templateOffer}
+                        onChange={handleChange}
+                        placeholder="e.g. Hi {{name}},\n\nWe have a special 20% discount offer for businesses in {{location}}..."
+                        rows={4}
+                        className="input-modern w-full font-mono text-xs" 
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <label className="text-xs font-bold text-slate-500 uppercase">Partnership Proposal Template</label>
+                      <textarea 
+                        name="templatePartnership"
+                        value={formData.templatePartnership}
+                        onChange={handleChange}
+                        placeholder="e.g. Dear {{name}} Team,\n\nWe would love to partner with you in {{location}}..."
+                        rows={4}
+                        className="input-modern w-full font-mono text-xs" 
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <div className="pt-4 flex items-center justify-end gap-4">
+                  {success && (
+                    <div className="flex items-center gap-1.5 text-emerald-600 text-sm font-bold animate-in zoom-in">
+                      <CheckCircle2 size={16} /> Saved Successfully
+                    </div>
+                  )}
+                  <button 
+                    type="submit"
+                    disabled={loading}
+                    className="btn-premium flex items-center gap-2 px-8"
+                  >
+                    {loading ? <Zap size={18} className="animate-spin" /> : <Save size={18} />}
+                    {loading ? 'Saving...' : 'Save Templates'}
                   </button>
                 </div>
               </div>

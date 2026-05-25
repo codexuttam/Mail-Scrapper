@@ -17,6 +17,9 @@ const SettingsSchema = new mongoose.Schema({
   aiModel: { type: String, default: 'llama-3.3-70b-versatile' },
   webhookUrl: { type: String, default: '' },
   customPrompt: { type: String, default: '' },
+  templateIntro: { type: String, default: '' },
+  templateOffer: { type: String, default: '' },
+  templatePartnership: { type: String, default: '' },
   updatedAt: { type: Date, default: Date.now }
 });
 

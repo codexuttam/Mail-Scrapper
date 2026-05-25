@@ -18,6 +18,9 @@ export async function POST(req) {
     const senderName = settings?.fullName || 'Uttamraj Singh';
     const model = settings?.aiModel || 'llama-3.3-70b-versatile';
     const customPrompt = settings?.customPrompt || '';
+    const templateIntro = settings?.templateIntro || '';
+    const templateOffer = settings?.templateOffer || '';
+    const templatePartnership = settings?.templatePartnership || '';
 
     const message = await generateOutreach({ 
       name, 
@@ -28,7 +31,10 @@ export async function POST(req) {
       channel: channel || 'email',
       campaignType: campaignType || 'intro',
       model,
-      customPrompt
+      customPrompt,
+      templateIntro,
+      templateOffer,
+      templatePartnership
     });
 
     // Optionally save to DB if leadId provided
