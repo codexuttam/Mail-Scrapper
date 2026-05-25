@@ -33,7 +33,20 @@ export async function POST(req) {
 
     // Optionally save to DB if leadId provided
     if (process.env.MONGODB_URI && leadId) {
-      await Lead.findByIdAndUpdate(leadId, { message }, { new: true }).catch(() => null);
+      try {
+        const lead = await Lead.findById(leadId);
+        if (lead) {
+          lead.message = message;
+          lead.lastSentAt = new Date();
+          lead.activities.push({ 
+            type: 'email_sent', 
+            description: `Generated outreach email message (Tone: ${tone || 'friendly'}, Channel: ${channel || 'email'})` 
+          });
+          await lead.save();
+        }
+      } catch (e) {
+        console.error('Failed to update lead message/activity', e);
+      }
     }
 
     return NextResponse.json({ message });

@@ -223,6 +223,45 @@ export default function LeadDetailsPage() {
               </div>
            </div>
 
+           {/* Activity History Timeline */}
+           <div className="glass-card p-6 dark:bg-slate-900/50 space-y-4 text-left">
+              <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
+                 <Calendar size={16} className="text-indigo-600" />
+                 Activity Timeline
+              </h3>
+              
+              <div className="relative border-l border-slate-100 dark:border-slate-800 ml-2 pl-6 space-y-6 text-left">
+                 {lead.activities && lead.activities.length > 0 ? (
+                   [...lead.activities].reverse().map((act, i) => (
+                     <div key={i} className="relative">
+                        {/* Circle indicator */}
+                        <div className="absolute -left-[31px] mt-1.5 w-2.5 h-2.5 rounded-full bg-indigo-500 ring-4 ring-indigo-50 dark:ring-indigo-900/20"></div>
+                        <div>
+                           <span className="text-[10px] font-bold text-slate-400 block mb-0.5">
+                              {new Date(act.timestamp).toLocaleString()}
+                           </span>
+                           <span className="text-sm font-bold text-slate-700 dark:text-slate-300">
+                              {act.description}
+                           </span>
+                        </div>
+                     </div>
+                   ))
+                 ) : (
+                   <div className="relative">
+                      <div className="absolute -left-[31px] mt-1.5 w-2.5 h-2.5 rounded-full bg-indigo-500 ring-4 ring-indigo-50 dark:ring-indigo-900/20"></div>
+                      <div>
+                         <span className="text-[10px] font-bold text-slate-400 block mb-0.5">
+                            {new Date(lead.createdAt).toLocaleString()}
+                         </span>
+                         <span className="text-sm font-bold text-slate-700 dark:text-slate-300">
+                            Lead captured from Google Maps
+                         </span>
+                      </div>
+                   </div>
+                 )}
+              </div>
+           </div>
+
            <div className="glass-card p-6 border-2 border-dashed border-slate-200 dark:border-slate-800 text-center">
               <Trash2 size={32} className="mx-auto mb-4 text-rose-200" />
               <p className="text-sm font-bold text-slate-400 mb-4">No longer interested?</p>

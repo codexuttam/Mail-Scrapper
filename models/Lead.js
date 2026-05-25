@@ -24,6 +24,11 @@ const LeadSchema = new mongoose.Schema({
   message: { type: String },
   lastSentAt: { type: Date },
   archived: { type: Boolean, default: false },
+  activities: [{
+    type: { type: String, required: true },
+    description: { type: String },
+    timestamp: { type: Date, default: Date.now }
+  }],
   createdAt: { type: Date, default: Date.now }
 });
 

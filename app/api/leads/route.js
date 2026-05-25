@@ -31,7 +31,11 @@ export async function POST(req) {
     const body = await req.json();
     if (!body.name) delete body.name; 
     await connect();
-    const lead = await Lead.create({ ...body, userEmail: session.user.email });
+    const lead = await Lead.create({ 
+      ...body, 
+      userEmail: session.user.email,
+      activities: [{ type: 'created', description: `Lead captured via ${body.source || 'Search / Scraping'}` }]
+    });
     return NextResponse.json({ lead });
   } catch (err) {
     console.error('leads POST error', err);
@@ -58,7 +62,35 @@ export async function PATCH(req) {
     }
 
     if (!id) return NextResponse.json({ error: 'Missing lead id' }, { status: 400 });
-    const lead = await Lead.findOneAndUpdate({ _id: id, userEmail: session.user.email }, updates, { new: true });
+    const lead = await Lead.findOne({ _id: id, userEmail: session.user.email });
+    if (!lead) return NextResponse.json({ error: 'Lead not found' }, { status: 404 });
+
+    const newActivities = [];
+    if (updates) {
+      if (updates.status && updates.status !== lead.status) {
+        newActivities.push({ type: 'status_change', description: `Status updated to ${updates.status.toUpperCase()}` });
+      }
+      if (updates.notes && updates.notes !== lead.notes) {
+        newActivities.push({ type: 'note_save', description: 'Internal notes updated' });
+      }
+      if (updates.tags && JSON.stringify(updates.tags) !== JSON.stringify(lead.tags)) {
+        newActivities.push({ type: 'tag_update', description: 'Tags updated' });
+      }
+      if (updates.archived !== undefined && updates.archived !== lead.archived) {
+        newActivities.push({ 
+          type: updates.archived ? 'archived' : 'unarchived', 
+          description: updates.archived ? 'Moved to Recycle Bin' : 'Restored from Recycle Bin' 
+        });
+      }
+      
+      Object.assign(lead, updates);
+    }
+    
+    if (newActivities.length > 0) {
+      lead.activities.push(...newActivities);
+    }
+
+    await lead.save();
     return NextResponse.json({ lead });
   } catch (err) {
     console.error('leads PATCH error', err);
