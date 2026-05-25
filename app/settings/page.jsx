@@ -21,7 +21,8 @@ export default function SettingsPage() {
     smtpPort: 587,
     smtpUser: '',
     smtpPass: '',
-    smtpSecure: false
+    smtpSecure: false,
+    customPrompt: ''
   })
   const [showKeys, setShowKeys] = useState(false)
 
@@ -44,7 +45,8 @@ export default function SettingsPage() {
             smtpPort: data.settings.smtpPort || 587,
             smtpUser: data.settings.smtpUser || '',
             smtpPass: data.settings.smtpPass || '',
-            smtpSecure: data.settings.smtpSecure ?? false
+            smtpSecure: data.settings.smtpSecure ?? false,
+            customPrompt: data.settings.customPrompt || ''
           })
         }
       } catch (err) {
@@ -180,6 +182,22 @@ export default function SettingsPage() {
                         className="input-modern" 
                       />
                     </div>
+                  </div>
+                </div>
+                
+                <div className="space-y-4 pt-4 border-t border-slate-100">
+                  <h3 className="font-bold text-lg text-indigo-950 border-b pb-2">AI Personalization</h3>
+                  <div className="space-y-2">
+                    <label className="text-xs font-bold text-slate-500 uppercase">Custom Outreach Prompt / Guidelines</label>
+                    <textarea 
+                      name="customPrompt"
+                      value={formData.customPrompt}
+                      onChange={handleChange}
+                      placeholder="e.g. Always mention that we specialize in custom web design and offer a free 30-minute UI consultation. Keep it punchy."
+                      rows={3}
+                      className="input-modern w-full resize-y min-h-[80px]" 
+                    />
+                    <p className="text-[10px] text-slate-400 italic">This guideline will be appended to the AI prompt when generating outreach drafts.</p>
                   </div>
                 </div>
                 

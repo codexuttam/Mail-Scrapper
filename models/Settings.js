@@ -16,6 +16,7 @@ const SettingsSchema = new mongoose.Schema({
   smtpSecure: { type: Boolean, default: false },
   aiModel: { type: String, default: 'llama-3.3-70b-versatile' },
   webhookUrl: { type: String, default: '' },
+  customPrompt: { type: String, default: '' },
   updatedAt: { type: Date, default: Date.now }
 });
 
