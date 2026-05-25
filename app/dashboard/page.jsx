@@ -838,6 +838,281 @@ function DashboardContent() {
     setNotice({ type: 'success', message: `Exported ${selectedData.length} leads to CSV.` })
   }
 
+  const handleExportPDF = () => {
+    const selectedData = leads.filter(l => selectedLeads.includes(l._id))
+    if (selectedData.length === 0) return
+
+    const printWindow = window.open('', '_blank')
+    if (!printWindow) return
+
+    printWindow.document.write(`
+      <html>
+        <head>
+          <title>Lead Pipeline Report - ${new Date().toLocaleDateString()}</title>
+          <style>
+            @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap');
+            body {
+              font-family: 'Inter', sans-serif;
+              color: #0f172a;
+              margin: 40px;
+              line-height: 1.5;
+            }
+            .header {
+              display: flex;
+              justify-content: space-between;
+              align-items: center;
+              border-bottom: 2px solid #e2e8f0;
+              padding-bottom: 20px;
+              margin-bottom: 30px;
+            }
+            .header h1 {
+              margin: 0;
+              font-size: 24px;
+              font-weight: 800;
+              color: #4f46e5;
+            }
+            .header p {
+              margin: 5px 0 0 0;
+              font-size: 14px;
+              color: #64748b;
+            }
+            .meta {
+              text-align: right;
+              font-size: 14px;
+              color: #64748b;
+            }
+            .summary {
+              display: flex;
+              gap: 20px;
+              margin-bottom: 30px;
+            }
+            .summary-card {
+              flex: 1;
+              background: #f8fafc;
+              border: 1px solid #e2e8f0;
+              border-radius: 12px;
+              padding: 15px;
+              text-align: center;
+            }
+            .summary-card h3 {
+              margin: 0;
+              font-size: 12px;
+              text-transform: uppercase;
+              color: #64748b;
+              letter-spacing: 0.05em;
+            }
+            .summary-card p {
+              margin: 5px 0 0 0;
+              font-size: 20px;
+              font-weight: 800;
+              color: #0f172a;
+            }
+            .lead-row {
+              border: 1px solid #e2e8f0;
+              border-radius: 12px;
+              padding: 20px;
+              margin-bottom: 20px;
+              page-break-inside: avoid;
+            }
+            .lead-header {
+              display: flex;
+              justify-content: space-between;
+              align-items: flex-start;
+              margin-bottom: 15px;
+            }
+            .lead-title {
+              display: flex;
+              align-items: center;
+              gap: 10px;
+            }
+            .lead-name {
+              margin: 0;
+              font-size: 18px;
+              font-weight: 700;
+            }
+            .lead-score {
+              background: #fef3c7;
+              color: #92400e;
+              padding: 2px 8px;
+              border-radius: 9999px;
+              font-size: 11px;
+              font-weight: 800;
+              border: 1px solid #fde68a;
+            }
+            .lead-status {
+              background: #e0e7ff;
+              color: #3730a3;
+              padding: 2px 8px;
+              border-radius: 9999px;
+              font-size: 10px;
+              font-weight: 700;
+              text-transform: uppercase;
+              letter-spacing: 0.05em;
+            }
+            .grid {
+              display: grid;
+              grid-template-cols: 1fr 1fr;
+              gap: 15px;
+              margin-bottom: 15px;
+            }
+            .info-item h4 {
+              margin: 0 0 4px 0;
+              font-size: 11px;
+              text-transform: uppercase;
+              color: #64748b;
+              letter-spacing: 0.05em;
+            }
+            .info-item p {
+              margin: 0;
+              font-size: 13px;
+              font-weight: 600;
+              word-break: break-all;
+            }
+            .tag {
+              display: inline-block;
+              background: #f1f5f9;
+              color: #334155;
+              padding: 2px 8px;
+              border-radius: 9999px;
+              font-size: 10px;
+              font-weight: 700;
+              margin-right: 5px;
+              text-transform: uppercase;
+            }
+            .notes {
+              background: #f8fafc;
+              border-left: 3px solid #cbd5e1;
+              padding: 10px 15px;
+              margin-top: 15px;
+              border-radius: 0 8px 8px 0;
+            }
+            .notes h4 {
+              margin: 0 0 5px 0;
+              font-size: 11px;
+              text-transform: uppercase;
+              color: #64748b;
+            }
+            .notes p {
+              margin: 0;
+              font-size: 13px;
+              font-style: italic;
+              color: #334155;
+            }
+            .btn-print {
+              position: fixed;
+              bottom: 20px;
+              right: 20px;
+              background: #4f46e5;
+              color: white;
+              border: none;
+              padding: 12px 24px;
+              border-radius: 9999px;
+              font-size: 14px;
+              font-weight: 700;
+              cursor: pointer;
+              box-shadow: 0 10px 15px -3px rgba(79, 70, 229, 0.3);
+              display: flex;
+              align-items: center;
+              gap: 8px;
+              transition: all 0.2s;
+            }
+            .btn-print:hover {
+              background: #4338ca;
+              transform: translateY(-2px);
+            }
+            @media print {
+              .btn-print {
+                display: none;
+              }
+              body {
+                margin: 0;
+              }
+            }
+          </style>
+        </head>
+        <body>
+          <div class="header">
+            <div>
+              <h1>Mail-Scrapper Lead Pipeline Report</h1>
+              <p>Detailed summary of selected sales opportunities</p>
+            </div>
+            <div class="meta">
+              <strong>Date:</strong> ${new Date().toLocaleDateString()}<br/>
+              <strong>Exported:</strong> ${selectedData.length} leads
+            </div>
+          </div>
+
+          <div class="summary">
+            <div class="summary-card">
+              <h3>Selected Leads</h3>
+              <p>${selectedData.length}</p>
+            </div>
+            <div class="summary-card">
+              <h3>Avg Lead Score</h3>
+              <p>${Math.round(selectedData.reduce((acc, curr) => acc + (curr.score || 0), 0) / selectedData.length) || 0}/100</p>
+            </div>
+            <div class="summary-card">
+              <h3>Active Statuses</h3>
+              <p>${[...new Set(selectedData.map(l => l.status || 'new'))].length}</p>
+            </div>
+          </div>
+
+          <div class="leads-list">
+            ${selectedData.map(l => `
+              <div class="lead-row">
+                <div class="lead-header">
+                  <div class="lead-title">
+                    <h2 class="lead-name">${l.name}</h2>
+                    ${l.score ? `<span class="lead-score">${l.score}/100</span>` : ''}
+                  </div>
+                  <span class="lead-status">${l.status || 'new'}</span>
+                </div>
+                
+                <div class="grid">
+                  <div class="info-item">
+                    <h4>Email Address</h4>
+                    <p>${l.email || 'N/A'}</p>
+                  </div>
+                  <div class="info-item">
+                    <h4>Phone Number</h4>
+                    <p>${l.phone || 'N/A'}</p>
+                  </div>
+                  <div class="info-item">
+                    <h4>Location</h4>
+                    <p>${l.address || 'N/A'}</p>
+                  </div>
+                  <div class="info-item">
+                    <h4>Website</h4>
+                    <p>${l.website || 'N/A'}</p>
+                  </div>
+                </div>
+
+                ${l.tags && l.tags.length > 0 ? `
+                  <div style="margin-bottom: 15px;">
+                    ${l.tags.map(t => `<span class="tag">${t}</span>`).join('')}
+                  </div>
+                ` : ''}
+
+                ${l.notes ? `
+                  <div class="notes">
+                    <h4>Notes</h4>
+                    <p>${l.notes}</p>
+                  </div>
+                ` : ''}
+              </div>
+            `).join('')}
+          </div>
+
+          <button class="btn-print" onclick="window.print()">
+            <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6.72 13.821V21h10.56v-7.179M9 3h6v4H9V3zM4.5 16.5h15a2.25 2.25 0 002.25-2.25V9a2.25 2.25 0 00-2.25-2.25h-15A2.25 2.25 0 002.25 9v5.25A2.25 2.25 0 004.5 16.5z"></path></svg>
+            Print Report Sheet / Save PDF
+          </button>
+        </body>
+      </html>
+    `)
+    printWindow.document.close()
+  }
+
   async function handleBulkTag() {
     if (!bulkTag.trim()) return
     setLoading(true)
@@ -1018,6 +1293,13 @@ function DashboardContent() {
                      <Download size={16} />
                      Export CSV
                    </button>
+                    <button 
+                      onClick={handleExportPDF}
+                      className="flex items-center gap-2 px-4 py-2 bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-400 rounded-xl transition-all text-sm font-bold border border-indigo-500/20"
+                    >
+                      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6.72 13.821V21h10.56v-7.179M9 3h6v4H9V3zM4.5 16.5h15a2.25 2.25 0 002.25-2.25V9a2.25 2.25 0 00-2.25-2.25h-15A2.25 2.25 0 002.25 9v5.25A2.25 2.25 0 004.5 16.5z"></path></svg>
+                      Print Report
+                    </button>
                    <button 
                      onClick={handleBulkArchive}
                      className="flex items-center gap-2 px-4 py-2 bg-white/10 hover:bg-white/20 rounded-xl transition-all text-sm font-bold"
