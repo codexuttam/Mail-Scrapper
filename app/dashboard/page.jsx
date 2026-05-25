@@ -37,6 +37,16 @@ function getLeadIcon(name = '', type = '') {
   if (n.includes('store') || n.includes('shop') || t.includes('retail')) return <Store size={16} />
   return <Briefcase size={16} />
 }
+
+export function getTagColorClass(tag) {
+  const t = (tag || '').toLowerCase();
+  if (t === 'vip' || t === 'hot' || t === 'high priority') return 'bg-rose-50 text-rose-700 border border-rose-100 dark:bg-rose-950/30 dark:text-rose-400 dark:border-rose-900';
+  if (t === 'interested' || t === 'warm' || t === 'follow up') return 'bg-amber-50 text-amber-700 border border-amber-100 dark:bg-amber-950/30 dark:text-amber-400 dark:border-amber-900';
+  if (t === 'sent' || t === 'active' || t === 'outreached') return 'bg-emerald-50 text-emerald-700 border border-emerald-100 dark:bg-emerald-950/30 dark:text-emerald-400 dark:border-emerald-900';
+  if (t === 'new' || t === 'lead') return 'bg-indigo-50 text-indigo-700 border border-indigo-100 dark:bg-indigo-950/30 dark:text-indigo-400 dark:border-indigo-900';
+  if (t === 'cold' || t === 'low priority' || t === 'rejected') return 'bg-slate-50 text-slate-500 border border-slate-100 dark:bg-slate-900/50 dark:text-slate-400 dark:border-slate-800';
+  return 'bg-slate-100 text-slate-600 border border-slate-200 dark:bg-slate-800 dark:text-slate-400 dark:border-slate-700';
+}
 export default function DashboardPage() {
   return (
     <Suspense fallback={<div className="p-8 text-center animate-pulse text-slate-400">Loading Dashboard...</div>}>
@@ -90,6 +100,7 @@ function LeadRow({ lead, onGenerate, onSend, onDelete, onArchive, onMagic, isMag
 
   const [tagInput, setTagInput] = useState('')
   const [showTagInput, setShowTagInput] = useState(false)
+  const [tagInputMode, setTagInputMode] = useState('select') // 'select' or 'custom'
 
   const handleAddTag = async (e) => {
     if (e.key === 'Enter' && tagInput.trim()) {
@@ -98,6 +109,7 @@ function LeadRow({ lead, onGenerate, onSend, onDelete, onArchive, onMagic, isMag
       await onUpdate(lead._id, { tags: newTags })
       setTagInput('')
       setShowTagInput(false)
+      setTagInputMode('select')
       setIsUpdating(false)
     }
   }
@@ -176,25 +188,56 @@ function LeadRow({ lead, onGenerate, onSend, onDelete, onArchive, onMagic, isMag
           
           <div className="mb-3 flex flex-wrap gap-2 items-center">
              {(lead.tags || []).map((tag, i) => (
-               <span key={i} className="flex items-center gap-1 px-2 py-0.5 bg-slate-100 text-slate-600 rounded text-[10px] font-bold dark:bg-slate-800 dark:text-slate-400">
+               <span key={i} className={`flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider ${getTagColorClass(tag)}`}>
                  {tag}
-                 <button onClick={() => removeTag(tag)} className="hover:text-rose-500"><X size={10} /></button>
+                 <button onClick={() => removeTag(tag)} className="hover:text-rose-600 transition-colors ml-0.5"><X size={10} /></button>
                </span>
              ))}
              {showTagInput ? (
-               <input 
-                 autoFocus
-                 type="text" 
-                 className="bg-slate-50 border border-indigo-200 text-[10px] py-0.5 px-2 rounded outline-none w-24 dark:bg-slate-800 dark:border-indigo-900"
-                 value={tagInput}
-                 onChange={(e) => setTagInput(e.target.value)}
-                 onKeyDown={handleAddTag}
-                 onBlur={() => setShowTagInput(false)}
-                 placeholder="Press Enter"
-               />
+               tagInputMode === 'select' ? (
+                 <select 
+                   autoFocus
+                   onChange={async (e) => {
+                     const selected = e.target.value;
+                     if (selected === 'custom') {
+                       setTagInputMode('custom');
+                       return;
+                     }
+                     if (selected && !lead.tags?.includes(selected)) {
+                       const newTags = [...(lead.tags || []), selected]
+                       setIsUpdating(true)
+                       await onUpdate(lead._id, { tags: newTags })
+                       setIsUpdating(false)
+                     }
+                     setShowTagInput(false)
+                   }}
+                   onBlur={() => setTimeout(() => setShowTagInput(false), 200)}
+                   className="bg-slate-50 border border-indigo-200 text-[10px] py-0.5 px-1.5 rounded outline-none dark:bg-slate-800 dark:border-indigo-900 font-bold text-slate-700"
+                   defaultValue=""
+                 >
+                   <option value="" disabled>Select Tag...</option>
+                   <option value="VIP">🔥 VIP</option>
+                   <option value="Hot">🌶️ Hot</option>
+                   <option value="Warm">☀️ Warm</option>
+                   <option value="Follow Up">📅 Follow Up</option>
+                   <option value="Cold">❄️ Cold</option>
+                   <option value="custom">✏️ Custom...</option>
+                 </select>
+               ) : (
+                 <input 
+                   autoFocus
+                   type="text" 
+                   className="bg-slate-50 border border-indigo-200 text-[10px] py-0.5 px-2 rounded outline-none w-24 dark:bg-slate-800 dark:border-indigo-900"
+                   value={tagInput}
+                   onChange={(e) => setTagInput(e.target.value)}
+                   onKeyDown={handleAddTag}
+                   onBlur={() => { setShowTagInput(false); setTagInputMode('select'); }}
+                   placeholder="Press Enter"
+                 />
+               )
              ) : (
                <button 
-                 onClick={() => setShowTagInput(true)}
+                 onClick={() => { setShowTagInput(true); setTagInputMode('select'); }}
                  className="text-slate-400 hover:text-indigo-600 flex items-center gap-1 text-[10px] font-bold"
                >
                  <Plus size={12} /> Add Tag
