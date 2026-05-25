@@ -3,15 +3,13 @@ import { useState, useEffect, useRef } from 'react'
 import { Search, MapPin, Phone, Globe, Save, Loader2, Compass, Layers, Filter, Zap, Info, Camera, Users, MessageSquare } from 'lucide-react'
 import { ResultSkeleton } from '../../components/Skeleton'
 
-function ResultRow({ item, onSave }) {
+function ResultRow({ item, onSave, isSelected, onToggleSelect, isSaved }) {
   const [isSaving, setIsSaving] = useState(false)
-  const [saved, setSaved] = useState(false)
 
   const handleSave = async () => {
     setIsSaving(true)
     await onSave(item)
     setIsSaving(false)
-    setSaved(true)
   }
 
   const WA_ICON = <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path></svg>;
@@ -21,8 +19,17 @@ function ResultRow({ item, onSave }) {
   const IN_ICON = <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"></path><rect x="2" y="9" width="4" height="12"></rect><circle cx="4" cy="4" r="2"></circle></svg>;
 
   return (
-    <div className="bg-white rounded-2xl shadow-sm border border-slate-200 mb-4 p-5 hover:shadow-lg hover:border-indigo-300 transition-all duration-300 animate-in group">
-      <div className="flex flex-col lg:flex-row justify-between gap-5">
+    <div className={`bg-white rounded-2xl shadow-sm border mb-4 p-5 hover:shadow-lg hover:border-indigo-300 transition-all duration-300 animate-in group flex items-start gap-4 ${isSelected ? 'border-indigo-600 bg-indigo-50/10' : 'border-slate-200'}`}>
+      <div className="pt-1.5 shrink-0">
+        <input 
+          type="checkbox"
+          checked={isSelected || isSaved}
+          onChange={onToggleSelect}
+          disabled={isSaved}
+          className="w-4 h-4 rounded text-indigo-600 focus:ring-indigo-500 border-slate-300 cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed"
+        />
+      </div>
+      <div className="flex-1 flex flex-col lg:flex-row justify-between gap-5">
         <div className="flex-1 space-y-3">
           <div>
             <div className="flex items-center gap-2 mb-1.5">
@@ -110,15 +117,15 @@ function ResultRow({ item, onSave }) {
         
         <div className="flex lg:flex-col items-center justify-end gap-3 shrink-0 border-t lg:border-t-0 lg:border-l border-slate-100 pt-4 lg:pt-0 lg:pl-6">
           <button 
-            disabled={isSaving || saved}
+            disabled={isSaving || isSaved}
             onClick={handleSave} 
             className={`w-full lg:w-36 h-11 flex items-center justify-center gap-2 rounded-xl font-bold transition-all ${
-              saved 
+              isSaved 
                 ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-200' 
                 : 'bg-indigo-600 text-white hover:bg-indigo-700 shadow-lg shadow-indigo-200 active:scale-95'
             }`}
           >
-            {isSaving ? <Loader2 size={18} className="animate-spin" /> : saved ? <><Save size={18} /> Saved</> : <><Save size={18} /> Save Lead</>}
+            {isSaving ? <Loader2 size={18} className="animate-spin" /> : isSaved ? <><Save size={18} /> Saved</> : <><Save size={18} /> Save Lead</>}
           </button>
           
           <a 
@@ -141,6 +148,9 @@ export default function FindPage() {
   const [loading, setLoading] = useState(false)
   const [searchMethod, setSearchMethod] = useState('scrape')
   const [emailOnly, setEmailOnly] = useState(false)
+  const [selectedNames, setSelectedNames] = useState([])
+  const [savedNames, setSavedNames] = useState([])
+  const [bulkSaving, setBulkSaving] = useState(false)
   
   const mapRef = useRef(null)
   const leafletMap = useRef(null)
@@ -250,25 +260,58 @@ export default function FindPage() {
   }
 
   async function saveItem(item) {
-    await fetch('/api/leads', { 
-      method: 'POST', 
-      body: JSON.stringify({ 
-        name: item.name, 
-        email: (item.emails && item.emails.length > 0) ? item.emails[0] : '',
-        phone: item.phone, 
-        address: item.address, 
-        website: item.website || item.link || '', 
-        socials: item.socials,
-        summary: item.summary || '',
-        location: query  
-      }),
-      headers: { 'Content-Type': 'application/json' } 
-    })
+    try {
+      const res = await fetch('/api/leads', { 
+        method: 'POST', 
+        body: JSON.stringify({ 
+          name: item.name, 
+          email: (item.emails && item.emails.length > 0) ? item.emails[0] : '',
+          phone: item.phone, 
+          address: item.address, 
+          website: item.website || item.link || '', 
+          socials: item.socials,
+          summary: item.summary || '',
+          location: query  
+        }),
+        headers: { 'Content-Type': 'application/json' } 
+      })
+      if (res.ok) {
+        setSavedNames(prev => [...prev, item.name])
+      }
+    } catch (e) {
+      console.error(e)
+    }
   }
 
   const toggleSort = () => {
     const sorted = [...results].sort((a, b) => (b.rating || 0) - (a.rating || 0))
     setResults(sorted)
+  }
+
+  const filteredResults = results.filter(r => emailOnly ? (r.emails && r.emails.length > 0) : true)
+  const isAllSelected = filteredResults.length > 0 && filteredResults.every(r => selectedNames.includes(r.name) || savedNames.includes(r.name))
+
+  const toggleSelectAll = () => {
+    if (isAllSelected) {
+      setSelectedNames([])
+    } else {
+      const toSelect = filteredResults.filter(r => !savedNames.includes(r.name)).map(r => r.name)
+      setSelectedNames(toSelect)
+    }
+  }
+
+  const saveSelectedLeads = async () => {
+    if (selectedNames.length === 0) return
+    setBulkSaving(true)
+    const itemsToSave = filteredResults.filter(r => selectedNames.includes(r.name) && !savedNames.includes(r.name))
+    try {
+      await Promise.all(itemsToSave.map(item => saveItem(item)))
+      setSelectedNames([])
+    } catch (e) {
+      console.error(e)
+    } finally {
+      setBulkSaving(false)
+    }
   }
 
   return (
@@ -341,21 +384,41 @@ export default function FindPage() {
 
       <div className="grid lg:grid-cols-[1fr,350px] gap-8">
         <div className="order-2 lg:order-1">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="font-bold text-slate-800 flex items-center gap-2">
-              <Layers size={18} className="text-indigo-600" />
-              Search Results {results.length > 0 && `(${results.filter(r => emailOnly ? (r.emails && r.emails.length > 0) : true).length})`}
-            </h2>
-            <div className="flex items-center gap-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-4 gap-3">
+            <div className="flex items-center gap-3">
+              <h2 className="font-bold text-slate-800 flex items-center gap-2">
+                <Layers size={18} className="text-indigo-600" />
+                Search Results {results.length > 0 && `(${filteredResults.length})`}
+              </h2>
+              {results.length > 0 && (
+                <button 
+                  onClick={toggleSelectAll}
+                  className="text-[10px] font-black text-indigo-600 uppercase tracking-widest hover:underline"
+                >
+                  {isAllSelected ? 'Deselect All' : 'Select All'}
+                </button>
+              )}
+            </div>
+            <div className="flex items-center gap-4 flex-wrap">
               <label className="flex items-center gap-2 cursor-pointer group">
                 <input 
                   type="checkbox" 
                   checked={emailOnly} 
-                  onChange={(e) => setEmailOnly(e.target.checked)}
+                  onChange={(e) => { setEmailOnly(e.target.checked); setSelectedNames([]); }}
                   className="w-4 h-4 rounded text-indigo-600 focus:ring-indigo-500 border-slate-300" 
                 />
                 <span className="text-sm font-bold text-slate-600 group-hover:text-indigo-600 transition-colors">Emails Only</span>
               </label>
+              {results.length > 0 && (
+                <button 
+                  onClick={saveSelectedLeads} 
+                  disabled={selectedNames.length === 0 || bulkSaving}
+                  className="px-3.5 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold transition-all disabled:opacity-40 flex items-center gap-1.5 shadow-md shadow-indigo-100"
+                >
+                  {bulkSaving ? <Loader2 size={12} className="animate-spin" /> : <Save size={12} />}
+                  Save Selected ({selectedNames.length})
+                </button>
+              )}
               {results.length > 0 && (
                 <button onClick={toggleSort} className="text-sm font-bold text-indigo-600 flex items-center gap-1 hover:underline active:scale-95 transition-all">
                    <Filter size={14} /> Sort by Rating
@@ -380,10 +443,22 @@ export default function FindPage() {
              </div>
           ) : results.length > 0 ? (
             <div className="animate-in">
-              {results
-                .filter(r => emailOnly ? (r.emails && r.emails.length > 0) : true)
+              {filteredResults
                 .map((r, idx) => (
-                   <ResultRow key={idx} item={r} onSave={saveItem} />
+                   <ResultRow 
+                     key={idx} 
+                     item={r} 
+                     onSave={saveItem} 
+                     isSelected={selectedNames.includes(r.name)}
+                     onToggleSelect={() => {
+                       if (selectedNames.includes(r.name)) {
+                         setSelectedNames(prev => prev.filter(n => n !== r.name))
+                       } else {
+                         setSelectedNames(prev => [...prev, r.name])
+                       }
+                     }}
+                     isSaved={savedNames.includes(r.name)}
+                   />
                 ))
               }
             </div>
