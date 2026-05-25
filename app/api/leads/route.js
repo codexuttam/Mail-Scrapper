@@ -13,8 +13,16 @@ export async function GET(req) {
     await connect();
     const url = new URL(req.url);
     const status = url.searchParams.get('status');
-    const filter = { userEmail: session.user.email, archived: { $ne: true } };
+    const trash = url.searchParams.get('trash') === 'true';
+    
+    const filter = { userEmail: session.user.email };
+    if (trash) {
+      filter.archived = true;
+    } else {
+      filter.archived = { $ne: true };
+    }
     if (status) filter.status = status;
+    
     const leads = await Lead.find(filter).sort({ createdAt: -1 }).lean();
     return NextResponse.json({ leads });
   } catch (err) {
@@ -103,10 +111,38 @@ export async function DELETE(req) {
     const session = await getServerSession(authOptions)
     if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
 
-    const { id } = await req.json();
-    if (!id) return NextResponse.json({ error: 'Missing lead id' }, { status: 400 });
+    const { id, ids, permanent, restore } = await req.json();
     await connect();
-    await Lead.findOneAndDelete({ _id: id, userEmail: session.user.email });
+
+    const targetIds = ids || (id ? [id] : []);
+    if (targetIds.length === 0) {
+      return NextResponse.json({ error: 'Missing lead id or ids' }, { status: 400 });
+    }
+
+    const query = { _id: { $in: targetIds }, userEmail: session.user.email };
+
+    if (restore) {
+      const leads = await Lead.find(query);
+      for (const lead of leads) {
+        lead.archived = false;
+        lead.activities.push({ type: 'unarchived', description: 'Restored from Recycle Bin' });
+        await lead.save();
+      }
+      return NextResponse.json({ ok: true });
+    }
+
+    if (permanent) {
+      await Lead.deleteMany(query);
+      return NextResponse.json({ ok: true });
+    }
+
+    // Default: Soft Delete (Archive)
+    const leads = await Lead.find(query);
+    for (const lead of leads) {
+      lead.archived = true;
+      lead.activities.push({ type: 'archived', description: 'Moved to Recycle Bin' });
+      await lead.save();
+    }
     return NextResponse.json({ ok: true });
   } catch (err) {
     console.error('leads DELETE error', err);

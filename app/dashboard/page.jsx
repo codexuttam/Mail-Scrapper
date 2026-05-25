@@ -3,7 +3,7 @@ import { useEffect, useState, Suspense } from 'react'
 import Link from 'next/link'
 import { useSearchParams, useRouter, usePathname } from 'next/navigation'
 import { useSession } from 'next-auth/react'
-import { Mail, Trash2, Send, Wand2, RefreshCw, CheckCircle2, AlertCircle, Calendar, MapPin, X, Zap, Loader2, Search, MessageCircle, MessageSquare, AlertTriangle, Copy, TrendingUp, ExternalLink, Tag, Plus, PieChart, Download, Stethoscope, Utensils, Dumbbell, Store, Briefcase, Archive } from 'lucide-react'
+import { Mail, Trash2, Send, Wand2, RefreshCw, CheckCircle2, AlertCircle, Calendar, MapPin, X, Zap, Loader2, Search, MessageCircle, MessageSquare, AlertTriangle, Copy, TrendingUp, ExternalLink, Tag, Plus, PieChart, Download, Stethoscope, Utensils, Dumbbell, Store, Briefcase, Archive, RotateCcw } from 'lucide-react'
 import { LeadSkeleton } from '../../components/Skeleton'
 
 function formatDate(iso) {
@@ -80,7 +80,7 @@ function Modal({ isOpen, onClose, title, children }) {
   )
 }
 
-function LeadRow({ lead, onGenerate, onSend, onDelete, onArchive, onMagic, isMagicLoading, onUpdate, isSelected, onToggleSelect }) {
+function LeadRow({ lead, onGenerate, onSend, onDelete, onArchive, onMagic, isMagicLoading, onUpdate, isSelected, onToggleSelect, viewTrash, onRestore }) {
   const [notes, setNotes] = useState(lead.notes || '')
   const [isUpdating, setIsUpdating] = useState(false)
 
@@ -325,102 +325,122 @@ function LeadRow({ lead, onGenerate, onSend, onDelete, onArchive, onMagic, isMag
       </div>
       
       <div className="flex items-center gap-2 self-end md:self-center">
-        <button 
-          onClick={() => onMagic(lead)} 
-          disabled={isMagicLoading || !lead.email}
-          className={`p-2.5 rounded-lg text-white shadow-sm transition-all group relative overflow-hidden ${!lead.email ? 'bg-slate-200 cursor-not-allowed grayscale' : 'bg-indigo-600 hover:bg-indigo-700 shadow-indigo-100 hover:shadow-indigo-200'}`}
-          title={!lead.email ? "Requires Email Address" : "Magic Quick Send (AI Generate + Send)"}
-        >
-          {isMagicLoading ? <Loader2 size={18} className="animate-spin" /> : <Zap size={18} className="group-hover:scale-110 transition-transform" />}
-          {lead.email && <span className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300"></span>}
-        </button>
-        <div className="w-px h-6 bg-slate-200 mx-1"></div>
-        {lead.phone && (
-          <div className="flex items-center gap-1">
+        {viewTrash ? (
+          <>
             <button 
-              onClick={() => {
-                let cleaned = lead.phone.replace(/[^0-9]/g, '');
-                if (cleaned.startsWith('0')) cleaned = cleaned.substring(1);
-                const final = cleaned.length === 10 ? `91${cleaned}` : cleaned;
-                window.open(`https://web.whatsapp.com/send?phone=${final}`, '_blank', 'noopener,noreferrer');
-              }}
-              className="p-2.5 rounded-lg bg-emerald-500 text-white hover:bg-emerald-600 transition-all shadow-sm flex items-center justify-center border-none cursor-pointer group"
-              title="Chat on WhatsApp"
+              onClick={() => onRestore(lead._id)} 
+              className="p-2.5 rounded-lg bg-emerald-50 text-emerald-600 hover:bg-emerald-100 transition-colors flex items-center gap-1 font-bold text-xs"
+              title="Restore Lead"
             >
-              <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round" className="group-hover:scale-110 transition-transform"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path></svg>
+              <RotateCcw size={16} /> Restore
+            </button>
+            <button 
+              onClick={() => onDelete(lead._id, true)} 
+              className="p-2.5 rounded-lg bg-rose-50 text-rose-600 hover:bg-rose-100 transition-colors flex items-center gap-1 font-bold text-xs"
+              title="Delete Permanently"
+            >
+              <Trash2 size={16} /> Purge
+            </button>
+          </>
+        ) : (
+          <>
+            <button 
+              onClick={() => onMagic(lead)} 
+              disabled={isMagicLoading || !lead.email}
+              className={`p-2.5 rounded-lg text-white shadow-sm transition-all group relative overflow-hidden ${!lead.email ? 'bg-slate-200 cursor-not-allowed grayscale' : 'bg-indigo-600 hover:bg-indigo-700 shadow-indigo-100 hover:shadow-indigo-200'}`}
+              title={!lead.email ? "Requires Email Address" : "Magic Quick Send (AI Generate + Send)"}
+            >
+              {isMagicLoading ? <Loader2 size={18} className="animate-spin" /> : <Zap size={18} className="group-hover:scale-110 transition-transform" />}
+              {lead.email && <span className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300"></span>}
+            </button>
+            <div className="w-px h-6 bg-slate-200 mx-1"></div>
+            {lead.phone && (
+              <div className="flex items-center gap-1">
+                <button 
+                  onClick={() => {
+                    let cleaned = lead.phone.replace(/[^0-9]/g, '');
+                    if (cleaned.startsWith('0')) cleaned = cleaned.substring(1);
+                    const final = cleaned.length === 10 ? `91${cleaned}` : cleaned;
+                    window.open(`https://web.whatsapp.com/send?phone=${final}`, '_blank', 'noopener,noreferrer');
+                  }}
+                  className="p-2.5 rounded-lg bg-emerald-500 text-white hover:bg-emerald-600 transition-all shadow-sm flex items-center justify-center border-none cursor-pointer group"
+                  title="Chat on WhatsApp"
+                >
+                  <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round" className="group-hover:scale-110 transition-transform"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path></svg>
+                </button>
+                <button 
+                  onClick={() => {
+                    let cleaned = lead.phone.replace(/[^0-9]/g, '');
+                    if (cleaned.startsWith('0')) cleaned = cleaned.substring(1);
+                    const final = cleaned.length === 10 ? `91${cleaned}` : cleaned;
+                    navigator.clipboard.writeText(final);
+                  }}
+                  className="p-2.5 rounded-lg bg-slate-100 text-slate-400 hover:bg-slate-200 transition-all flex items-center justify-center border-none cursor-pointer"
+                  title="Copy WhatsApp Number"
+                >
+                  <Copy size={16} />
+                </button>
+              </div>
+            )}
+            <button 
+              onClick={() => onGenerate(lead)} 
+              className="p-2.5 rounded-lg bg-indigo-50 text-indigo-600 hover:bg-indigo-100 transition-colors"
+              title="Draft AI Message"
+            >
+              <Wand2 size={18} />
+            </button>
+            <button 
+              onClick={() => onSend(lead)} 
+              disabled={!lead.email}
+              className={`p-2.5 rounded-lg transition-colors ${!lead.email ? 'bg-slate-50 text-slate-300 cursor-not-allowed' : 'bg-emerald-50 text-emerald-600 hover:bg-emerald-100'}`}
+              title={!lead.email ? "No Email Provided" : "Send Manual Outreach"}
+            >
+              <Send size={18} />
             </button>
             <button 
               onClick={() => {
-                let cleaned = lead.phone.replace(/[^0-9]/g, '');
-                if (cleaned.startsWith('0')) cleaned = cleaned.substring(1);
-                const final = cleaned.length === 10 ? `91${cleaned}` : cleaned;
-                navigator.clipboard.writeText(final);
-                // Simple feedback would be nice here, but we'll stick to the copy for now
-              }}
-              className="p-2.5 rounded-lg bg-slate-100 text-slate-400 hover:bg-slate-200 transition-all flex items-center justify-center border-none cursor-pointer"
-              title="Copy WhatsApp Number"
+                const details = `Name: ${lead.name}\nEmail: ${lead.email || 'N/A'}\nPhone: ${lead.phone || 'N/A'}\nAddress: ${lead.address || 'N/A'}\nWebsite: ${lead.website || 'N/A'}\nStatus: ${lead.status || 'new'}\nScore: ${lead.score || 0}/100\nTags: ${(lead.tags || []).join(', ')}\nNotes: ${lead.notes || ''}`;
+                navigator.clipboard.writeText(details);
+                alert('Lead details copied to clipboard!');
+              }} 
+              className="p-2.5 rounded-lg bg-slate-100 text-slate-500 hover:bg-slate-200 transition-colors"
+              title="Copy Details to Clipboard"
             >
-              <Copy size={16} />
+              <Copy size={18} />
             </button>
-          </div>
+            <button 
+              onClick={async () => {
+                setIsUpdating(true)
+                const res = await fetch('/api/leads/score', {
+                  method: 'POST',
+                  body: JSON.stringify({ id: lead._id }),
+                  headers: { 'Content-Type': 'application/json' }
+                })
+                const data = await res.json()
+                if (data.lead) onUpdate(lead._id, data.lead)
+                setIsUpdating(false)
+              }} 
+              className="p-2.5 rounded-lg bg-amber-50 text-amber-600 hover:bg-amber-100 transition-colors"
+              title="Calculate Lead Score"
+            >
+              <TrendingUp size={18} />
+            </button>
+            <button 
+              onClick={() => onArchive(lead)} 
+              className="p-2.5 rounded-lg bg-slate-100 text-slate-500 hover:bg-slate-200 transition-colors"
+              title="Archive Lead"
+            >
+              <Archive size={18} />
+            </button>
+            <button 
+              onClick={() => onDelete(lead._id)} 
+              className="p-2.5 rounded-lg bg-rose-50 text-rose-600 hover:bg-rose-100 transition-colors"
+              title="Delete Lead"
+            >
+              <Trash2 size={18} />
+            </button>
+          </>
         )}
-        <button 
-          onClick={() => onGenerate(lead)} 
-          className="p-2.5 rounded-lg bg-indigo-50 text-indigo-600 hover:bg-indigo-100 transition-colors"
-          title="Draft AI Message"
-        >
-          <Wand2 size={18} />
-        </button>
-        <button 
-          onClick={() => onSend(lead)} 
-          disabled={!lead.email}
-          className={`p-2.5 rounded-lg transition-colors ${!lead.email ? 'bg-slate-50 text-slate-300 cursor-not-allowed' : 'bg-emerald-50 text-emerald-600 hover:bg-emerald-100'}`}
-          title={!lead.email ? "No Email Provided" : "Send Manual Outreach"}
-        >
-          <Send size={18} />
-        </button>
-        <button 
-          onClick={() => {
-            const details = `Name: ${lead.name}\nEmail: ${lead.email || 'N/A'}\nPhone: ${lead.phone || 'N/A'}\nAddress: ${lead.address || 'N/A'}\nWebsite: ${lead.website || 'N/A'}\nStatus: ${lead.status || 'new'}\nScore: ${lead.score || 0}/100\nTags: ${(lead.tags || []).join(', ')}\nNotes: ${lead.notes || ''}`;
-            navigator.clipboard.writeText(details);
-            alert('Lead details copied to clipboard!');
-          }} 
-          className="p-2.5 rounded-lg bg-slate-100 text-slate-500 hover:bg-slate-200 transition-colors"
-          title="Copy Details to Clipboard"
-        >
-          <Copy size={18} />
-        </button>
-        <button 
-          onClick={async () => {
-            setIsUpdating(true)
-            const res = await fetch('/api/leads/score', {
-              method: 'POST',
-              body: JSON.stringify({ id: lead._id }),
-              headers: { 'Content-Type': 'application/json' }
-            })
-            const data = await res.json()
-            if (data.lead) onUpdate(lead._id, data.lead)
-            setIsUpdating(false)
-          }} 
-          className="p-2.5 rounded-lg bg-amber-50 text-amber-600 hover:bg-amber-100 transition-colors"
-          title="Calculate Lead Score"
-        >
-          <TrendingUp size={18} />
-        </button>
-        <button 
-          onClick={() => onArchive(lead)} 
-          className="p-2.5 rounded-lg bg-slate-100 text-slate-500 hover:bg-slate-200 transition-colors"
-          title="Archive Lead"
-        >
-          <Archive size={18} />
-        </button>
-        <button 
-          onClick={() => onDelete(lead)} 
-          className="p-2.5 rounded-lg bg-rose-50 text-rose-600 hover:bg-rose-100 transition-colors"
-          title="Delete Lead"
-        >
-          <Trash2 size={18} />
-        </button>
       </div>
     </div>
   )
@@ -517,6 +537,7 @@ function DashboardContent() {
   
   const [leads, setLeads] = useState([])
   const [loading, setLoading] = useState(false)
+  const [viewTrash, setViewTrash] = useState(false)
   const [magicLoadingId, setMagicLoadingId] = useState(null)
   
   const [previewLead, setPreviewLead] = useState(null)
@@ -589,7 +610,7 @@ function DashboardContent() {
   async function load() {
     setLoading(true)
     try {
-      const res = await fetch('/api/leads')
+      const res = await fetch(`/api/leads${viewTrash ? '?trash=true' : ''}`)
       const data = await res.json()
       setLeads(data.leads || [])
     } finally {
@@ -597,7 +618,7 @@ function DashboardContent() {
     }
   }
 
-  useEffect(() => { load() }, [])
+  useEffect(() => { load() }, [viewTrash])
 
   const [campaignType, setCampaignType] = useState('intro')
 
@@ -708,17 +729,42 @@ function DashboardContent() {
     }
   }
 
-  async function handleDelete(lead) {
-    if (!confirm('Discard lead "' + lead.name + '"?')) return
+  async function handleDelete(leadId, permanent = false) {
+    if (permanent) {
+      if (!confirm('Are you sure you want to PERMANENTLY delete this lead? This action cannot be undone.')) return
+    } else {
+      if (!confirm('Are you sure you want to move this lead to the Recycle Bin?')) return
+    }
     const res = await fetch('/api/leads', { 
       method: 'DELETE', 
-      body: JSON.stringify({ id: lead._id }), 
+      body: JSON.stringify({ id: leadId, permanent }), 
       headers: { 'Content-Type': 'application/json' } 
     })
     const data = await res.json()
     if (data.ok) {
-      setLeads((cur) => cur.filter(l => l._id !== lead._id))
-      if (previewLead && previewLead._id === lead._id) setPreviewLead(null)
+      setLeads((cur) => cur.filter(l => l._id !== leadId))
+      setSelectedLeads((cur) => cur.filter(id => id !== leadId))
+      if (previewLead && previewLead._id === leadId) setPreviewLead(null)
+      setNotice({ type: 'success', message: permanent ? 'Lead permanently deleted.' : 'Lead moved to Recycle Bin.' })
+    }
+  }
+
+  async function handleRestore(leadId) {
+    setLoading(true)
+    try {
+      const res = await fetch('/api/leads', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: leadId, restore: true })
+      });
+      if (!res.ok) throw new Error('Restore failed');
+      setLeads(cur => cur.filter(l => l._id !== leadId))
+      setSelectedLeads(cur => cur.filter(id => id !== leadId))
+      setNotice({ type: 'success', message: 'Lead restored successfully.' })
+    } catch (err) {
+      setNotice({ type: 'error', message: 'Restore failed: ' + err.message })
+    } finally {
+      setLoading(false)
     }
   }
 
@@ -853,22 +899,44 @@ function DashboardContent() {
     }
   }
 
-  async function handleBulkDelete() {
-    if (!confirm(`Delete ${selectedLeads.length} selected leads?`)) return
+  async function handleBulkDelete(permanent = false) {
+    if (permanent) {
+      if (!confirm(`Are you sure you want to PERMANENTLY delete ${selectedLeads.length} selected leads? This action cannot be undone.`)) return
+    } else {
+      if (!confirm(`Are you sure you want to move ${selectedLeads.length} selected leads to the Recycle Bin?`)) return
+    }
     setLoading(true)
     try {
-      await Promise.all(selectedLeads.map(id => 
-        fetch('/api/leads', { 
-          method: 'DELETE', 
-          body: JSON.stringify({ id }), 
-          headers: { 'Content-Type': 'application/json' } 
-        })
-      ))
+      const res = await fetch('/api/leads', { 
+        method: 'DELETE', 
+        body: JSON.stringify({ ids: selectedLeads, permanent }), 
+        headers: { 'Content-Type': 'application/json' } 
+      })
+      if (!res.ok) throw new Error('Bulk delete failed')
       setLeads(cur => cur.filter(l => !selectedLeads.includes(l._id)))
       setSelectedLeads([])
-      setNotice({ type: 'success', message: `Successfully deleted ${selectedLeads.length} leads.` })
+      setNotice({ type: 'success', message: permanent ? `Successfully purged ${selectedLeads.length} leads.` : `Successfully moved ${selectedLeads.length} leads to Recycle Bin.` })
     } catch (err) {
       setNotice({ type: 'error', message: 'Bulk delete failed: ' + err.message })
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  async function handleBulkRestore() {
+    setLoading(true)
+    try {
+      const res = await fetch('/api/leads', { 
+        method: 'DELETE', 
+        body: JSON.stringify({ ids: selectedLeads, restore: true }), 
+        headers: { 'Content-Type': 'application/json' } 
+      })
+      if (!res.ok) throw new Error('Bulk restore failed')
+      setLeads(cur => cur.filter(l => !selectedLeads.includes(l._id)))
+      setSelectedLeads([])
+      setNotice({ type: 'success', message: `Successfully restored ${selectedLeads.length} leads.` })
+    } catch (err) {
+      setNotice({ type: 'error', message: 'Bulk restore failed: ' + err.message })
     } finally {
       setLoading(false)
     }
@@ -924,111 +992,131 @@ function DashboardContent() {
                  <span className="text-sm font-bold">Leads Selected</span>
               </div>
               <div className="w-px h-6 bg-white/20"></div>
-              <div className="flex items-center gap-3">
-                  <button 
-                    onClick={handleExport}
-                    className="flex items-center gap-2 px-4 py-2 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 rounded-xl transition-all text-sm font-bold border border-emerald-500/20"
-                  >
-                    <Download size={16} />
-                    Export CSV
-                  </button>
-                  <button 
-                    onClick={handleBulkArchive}
-                    className="flex items-center gap-2 px-4 py-2 bg-white/10 hover:bg-white/20 rounded-xl transition-all text-sm font-bold"
-                  >
-                    <Archive size={16} />
-                    Archive
-                  </button>
-                 <button 
-                   onClick={handleBulkDelete}
-                   className="flex items-center gap-2 px-4 py-2 bg-white/10 hover:bg-white/20 rounded-xl transition-all text-sm font-bold"
-                 >
-                   <Trash2 size={16} />
-                   Delete Selected
-                 </button>
-                 <button 
-                   onClick={async () => {
-                     if (!confirm(`Start AI outreach for ${selectedLeads.length} leads?`)) return;
-                     setLoading(true);
-                     try {
-                       const res = await fetch('/api/bulk-outreach', {
-                         method: 'POST',
-                         body: JSON.stringify({ leadIds: selectedLeads }),
-                         headers: { 'Content-Type': 'application/json' }
-                       });
-                       const data = await res.json();
-                       if (data.ok) {
-                         setNotice({ type: 'success', message: `Bulk outreach complete! Processed ${data.results.length} leads.` });
-                         load();
-                         setSelectedLeads([]);
-                       } else {
-                         throw new Error(data.error);
+              {viewTrash ? (
+                <div className="flex items-center gap-3">
+                   <button 
+                     onClick={handleBulkRestore}
+                     className="flex items-center gap-2 px-4 py-2 bg-emerald-500/20 hover:bg-emerald-500/20 text-emerald-400 rounded-xl transition-all text-sm font-bold border border-emerald-500/20"
+                   >
+                     <RotateCcw size={16} />
+                     Restore Selected
+                   </button>
+                   <button 
+                     onClick={() => handleBulkDelete(true)}
+                     className="flex items-center gap-2 px-4 py-2 bg-rose-500/20 hover:bg-rose-500/20 text-rose-400 rounded-xl transition-all text-sm font-bold border border-rose-500/20"
+                   >
+                     <Trash2 size={16} />
+                     Purge Selected
+                   </button>
+                </div>
+              ) : (
+                <div className="flex items-center gap-3 flex-wrap md:flex-nowrap">
+                   <button 
+                     onClick={handleExport}
+                     className="flex items-center gap-2 px-4 py-2 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 rounded-xl transition-all text-sm font-bold border border-emerald-500/20"
+                   >
+                     <Download size={16} />
+                     Export CSV
+                   </button>
+                   <button 
+                     onClick={handleBulkArchive}
+                     className="flex items-center gap-2 px-4 py-2 bg-white/10 hover:bg-white/20 rounded-xl transition-all text-sm font-bold"
+                   >
+                     <Archive size={16} />
+                     Archive
+                   </button>
+                   <button 
+                     onClick={() => handleBulkDelete(false)}
+                     className="flex items-center gap-2 px-4 py-2 bg-white/10 hover:bg-white/20 rounded-xl transition-all text-sm font-bold"
+                   >
+                     <Trash2 size={16} />
+                     Delete Selected
+                   </button>
+                   <button 
+                     onClick={async () => {
+                       if (!confirm(`Start AI outreach for ${selectedLeads.length} leads?`)) return;
+                       setLoading(true);
+                       try {
+                         const res = await fetch('/api/bulk-outreach', {
+                           method: 'POST',
+                           body: JSON.stringify({ leadIds: selectedLeads }),
+                           headers: { 'Content-Type': 'application/json' }
+                         });
+                         const data = await res.json();
+                         if (data.ok) {
+                           setNotice({ type: 'success', message: `Bulk outreach complete! Processed ${data.results.length} leads.` });
+                           load();
+                           setSelectedLeads([]);
+                         } else {
+                           throw new Error(data.error);
+                         }
+                       } catch (err) {
+                         setNotice({ type: 'error', message: 'Bulk outreach failed: ' + err.message });
+                       } finally {
+                         setLoading(false);
                        }
-                     } catch (err) {
-                       setNotice({ type: 'error', message: 'Bulk outreach failed: ' + err.message });
-                     } finally {
-                       setLoading(false);
-                     }
-                   }}
-                   className="flex items-center gap-2 px-4 py-2 bg-white text-indigo-600 hover:bg-indigo-50 rounded-xl transition-all text-sm font-bold shadow-xl"
-                 >
-                   <Zap size={16} fill="currentColor" />
-                   AI Bulk Outreach
-                 </button>
-                 <button 
-                   onClick={async () => {
-                     setLoading(true);
-                     try {
-                       const res = await fetch('/api/webhooks/push', {
-                         method: 'POST',
-                         body: JSON.stringify({ leadIds: selectedLeads }),
-                         headers: { 'Content-Type': 'application/json' }
-                       });
-                       const data = await res.json();
-                       if (data.ok) {
-                         setNotice({ type: 'success', message: data.message });
-                         setSelectedLeads([]);
-                       } else {
-                         throw new Error(data.error);
+                     }}
+                     className="flex items-center gap-2 px-4 py-2 bg-white text-indigo-600 hover:bg-indigo-50 rounded-xl transition-all text-sm font-bold shadow-xl"
+                   >
+                     <Zap size={16} fill="currentColor" />
+                     AI Bulk Outreach
+                   </button>
+                   <button 
+                     onClick={async () => {
+                       setLoading(true);
+                       try {
+                         const res = await fetch('/api/webhooks/push', {
+                           method: 'POST',
+                           body: JSON.stringify({ leadIds: selectedLeads }),
+                           headers: { 'Content-Type': 'application/json' }
+                         });
+                         const data = await res.json();
+                         if (data.ok) {
+                           setNotice({ type: 'success', message: data.message });
+                           setSelectedLeads([]);
+                         } else {
+                           throw new Error(data.error);
+                         }
+                       } catch (err) {
+                         setNotice({ type: 'error', message: 'CRM Push failed: ' + err.message });
+                       } finally {
+                         setLoading(false);
                        }
-                     } catch (err) {
-                       setNotice({ type: 'error', message: 'CRM Push failed: ' + err.message });
-                     } finally {
-                       setLoading(false);
-                     }
-                   }}
-                   className="flex items-center gap-2 px-4 py-2 bg-indigo-500/20 hover:bg-indigo-500/30 text-white rounded-xl transition-all text-sm font-bold border border-white/10"
-                 >
-                   <ExternalLink size={16} />
-                   Push to CRM
-                 </button>
-                  <div className="flex items-center gap-2 px-3 py-1 bg-white/10 rounded-xl border border-white/5">
-                     <span className="text-[10px] font-black uppercase opacity-60">Status:</span>
-                     <select 
-                       onChange={(e) => handleBulkStatusUpdate(e.target.value)}
-                       className="bg-transparent text-sm font-bold outline-none cursor-pointer"
-                       defaultValue=""
-                     >
-                       <option value="" disabled className="text-slate-900">Change...</option>
-                       <option value="new" className="text-slate-900">New</option>
-                       <option value="sent" className="text-slate-900">Sent</option>
-                       <option value="interested" className="text-slate-900">Interested</option>
-                       <option value="replied" className="text-slate-900">Replied</option>
-                       <option value="rejected" className="text-slate-900">Rejected</option>
-                     </select>
-                  </div>
-                  <div className="flex items-center gap-2 px-3 py-1 bg-white/10 rounded-xl border border-white/5">
-                     <span className="text-[10px] font-black uppercase opacity-60">Tag:</span>
-                     <input 
-                       type="text"
-                       placeholder="Add tag..."
-                       className="bg-transparent text-sm font-bold outline-none placeholder:text-white/30 w-24"
-                       value={bulkTag}
-                       onChange={(e) => setBulkTag(e.target.value)}
-                       onKeyDown={(e) => e.key === 'Enter' && handleBulkTag()}
-                     />
-                  </div>
-                  <button 
+                     }}
+                     className="flex items-center gap-2 px-4 py-2 bg-indigo-500/20 hover:bg-indigo-500/30 text-white rounded-xl transition-all text-sm font-bold border border-white/10"
+                   >
+                     <ExternalLink size={16} />
+                     Push to CRM
+                   </button>
+                   <div className="flex items-center gap-2 px-3 py-1 bg-white/10 rounded-xl border border-white/5">
+                      <span className="text-[10px] font-black uppercase opacity-60">Status:</span>
+                      <select 
+                        onChange={(e) => handleBulkStatusUpdate(e.target.value)}
+                        className="bg-transparent text-sm font-bold outline-none cursor-pointer"
+                        defaultValue=""
+                      >
+                        <option value="" disabled className="text-slate-900">Change...</option>
+                        <option value="new" className="text-slate-900">New</option>
+                        <option value="sent" className="text-slate-900">Sent</option>
+                        <option value="interested" className="text-slate-900">Interested</option>
+                        <option value="replied" className="text-slate-900">Replied</option>
+                        <option value="rejected" className="text-slate-900">Rejected</option>
+                      </select>
+                   </div>
+                   <div className="flex items-center gap-2 px-3 py-1 bg-white/10 rounded-xl border border-white/5">
+                      <span className="text-[10px] font-black uppercase opacity-60">Tag:</span>
+                      <input 
+                        type="text"
+                        placeholder="Add tag..."
+                        className="bg-transparent text-sm font-bold outline-none placeholder:text-white/30 w-24"
+                        value={bulkTag}
+                        onChange={(e) => setBulkTag(e.target.value)}
+                        onKeyDown={(e) => e.key === 'Enter' && handleBulkTag()}
+                      />
+                   </div>
+                </div>
+              )}
+                                     <button 
                     onClick={() => setSelectedLeads([])}
                     className="text-white/60 hover:text-white transition-colors"
                   >
@@ -1042,77 +1130,139 @@ function DashboardContent() {
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div className="relative">
           <div className="absolute -left-4 top-0 w-1 h-full bg-indigo-600 rounded-full shadow-[0_0_15px_rgba(79,70,229,0.5)]"></div>
-          <h1 className="text-4xl font-black text-indigo-950 tracking-tight">Welcome, {firstName}!</h1>
-          <p className="text-slate-500 font-medium mt-1">Your lead generation pipeline is looking sharp.</p>
+          <h1 className="text-4xl font-black text-indigo-950 tracking-tight">
+            {viewTrash ? 'Recycle Bin' : `Welcome, ${firstName}!`}
+          </h1>
+          <p className="text-slate-500 font-medium mt-1">
+            {viewTrash 
+              ? 'View, restore, or permanently purge leads from your recycle bin.' 
+              : 'Your lead generation pipeline is looking sharp.'}
+          </p>
         </div>
         <div className="flex flex-wrap items-center gap-3">
-          <button 
-            onClick={() => {
-              const headers = ['Name', 'Email', 'Phone', 'Address', 'Website', 'Status', 'Date Found'];
-              const rows = leads.map(l => [
-                l.name,
-                l.email || '',
-                l.phone || '',
-                l.address || '',
-                l.website || '',
-                l.status || 'new',
-                l.createdAt || ''
-              ]);
-              
-              const csvContent = [
-                headers.join(','),
-                ...rows.map(r => r.map(field => `"${String(field).replace(/"/g, '""')}"`).join(','))
-              ].join('\n');
-              
-              const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-              const url = URL.createObjectURL(blob);
-              const link = document.createElement('a');
-              link.setAttribute('href', url);
-              link.setAttribute('download', `leads_export_${new Date().toISOString().split('T')[0]}.csv`);
-              document.body.appendChild(link);
-              link.click();
-              document.body.removeChild(link);
-            }}
-            disabled={loading || leads.length === 0}
-            className="flex items-center gap-2 px-5 py-3 rounded-2xl border border-slate-200 text-slate-500 text-xs font-bold hover:bg-indigo-50 hover:text-indigo-600 hover:border-indigo-100 transition-all active:scale-95 disabled:opacity-50"
-          >
-            <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
-            Export CSV
-          </button>
-          <button 
-            onClick={() => setShowCleanupModal(true)}
-            disabled={loading}
-            className="flex items-center gap-2 px-5 py-3 rounded-2xl border border-slate-200 text-slate-500 text-xs font-bold hover:bg-rose-50 hover:text-rose-600 hover:border-rose-100 transition-all active:scale-95 disabled:opacity-50"
-          >
-            <Trash2 size={14} />
-            Clean Dead Leads
-          </button>
-          <button 
-            onClick={load} 
-            disabled={loading}
-            className="px-6 py-3 rounded-2xl bg-indigo-600 text-white shadow-xl shadow-indigo-100 hover:shadow-indigo-300 hover:bg-indigo-700 transition-all flex items-center gap-2 font-bold text-sm active:scale-95"
-          >
-            <RefreshCw size={18} className={loading ? 'animate-spin' : ''} />
-            Refresh Pipeline
-          </button>
-          <button 
-            onClick={() => {
-              const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(leads, null, 2));
-              const downloadAnchorNode = document.createElement('a');
-              downloadAnchorNode.setAttribute("href", dataStr);
-              downloadAnchorNode.setAttribute("download", `leads_export_${new Date().toISOString().split('T')[0]}.json`);
-              document.body.appendChild(downloadAnchorNode);
-              downloadAnchorNode.click();
-              downloadAnchorNode.remove();
-            }}
-            disabled={loading || leads.length === 0}
-            className="p-3 rounded-2xl border border-slate-200 text-slate-500 hover:bg-slate-50 transition-all"
-            title="Export JSON"
-          >
-            <div className="flex items-center gap-2 text-xs font-bold">
-               <span className="uppercase text-[10px]">JSON</span>
-            </div>
-          </button>
+          {viewTrash ? (
+            <>
+              {leads.length > 0 && (
+                <button 
+                  onClick={async () => {
+                    if (!confirm('Are you sure you want to PERMANENTLY purge all leads in the Recycle Bin? This action is irreversible.')) return;
+                    setLoading(true);
+                    try {
+                      const res = await fetch('/api/leads', {
+                        method: 'DELETE',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ ids: leads.map(l => l._id), permanent: true })
+                      });
+                      if (!res.ok) throw new Error('Purge failed');
+                      setLeads([]);
+                      setSelectedLeads([]);
+                      setNotice({ type: 'success', message: 'Recycle Bin purged successfully.' });
+                    } catch (err) {
+                      setNotice({ type: 'error', message: err.message });
+                    } finally {
+                      setLoading(false);
+                    }
+                  }}
+                  disabled={loading}
+                  className="flex items-center gap-2 px-5 py-3 rounded-2xl bg-rose-600 text-white text-xs font-bold hover:bg-rose-700 transition-all active:scale-95 disabled:opacity-50 shadow-md shadow-rose-100"
+                >
+                  <Trash2 size={14} />
+                  Empty Recycle Bin
+                </button>
+              )}
+              <button 
+                onClick={() => {
+                  setViewTrash(false);
+                  setSelectedLeads([]);
+                }}
+                disabled={loading}
+                className="flex items-center gap-2 px-5 py-3 rounded-2xl border border-indigo-200 text-indigo-600 bg-indigo-50 text-xs font-bold hover:bg-indigo-100 transition-all active:scale-95"
+              >
+                Exit Recycle Bin
+              </button>
+            </>
+          ) : (
+            <>
+              <button 
+                onClick={() => {
+                  setViewTrash(true);
+                  setSelectedLeads([]);
+                }}
+                disabled={loading}
+                className="flex items-center gap-2 px-5 py-3 rounded-2xl border border-slate-200 text-slate-500 text-xs font-bold hover:bg-slate-50 transition-all active:scale-95"
+              >
+                <Trash2 size={14} />
+                Recycle Bin
+              </button>
+              <button 
+                onClick={() => {
+                  const headers = ['Name', 'Email', 'Phone', 'Address', 'Website', 'Status', 'Date Found'];
+                  const rows = leads.map(l => [
+                    l.name,
+                    l.email || '',
+                    l.phone || '',
+                    l.address || '',
+                    l.website || '',
+                    l.status || 'new',
+                    l.createdAt || ''
+                  ]);
+                  
+                  const csvContent = [
+                    headers.join(','),
+                    ...rows.map(r => r.map(field => `"${String(field).replace(/"/g, '""')}"`).join(','))
+                  ].join('\n');
+                  
+                  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+                  const url = URL.createObjectURL(blob);
+                  const link = document.createElement('a');
+                  link.setAttribute('href', url);
+                  link.setAttribute('download', `leads_export_${new Date().toISOString().split('T')[0]}.csv`);
+                  document.body.appendChild(link);
+                  link.click();
+                  document.body.removeChild(link);
+                }}
+                disabled={loading || leads.length === 0}
+                className="flex items-center gap-2 px-5 py-3 rounded-2xl border border-slate-200 text-slate-500 text-xs font-bold hover:bg-indigo-50 hover:text-indigo-600 hover:border-indigo-100 transition-all active:scale-95 disabled:opacity-50"
+              >
+                <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                Export CSV
+              </button>
+              <button 
+                onClick={() => setShowCleanupModal(true)}
+                disabled={loading}
+                className="flex items-center gap-2 px-5 py-3 rounded-2xl border border-slate-200 text-slate-500 text-xs font-bold hover:bg-rose-50 hover:text-rose-600 hover:border-rose-100 transition-all active:scale-95 disabled:opacity-50"
+              >
+                <Trash2 size={14} />
+                Clean Dead Leads
+              </button>
+              <button 
+                onClick={load} 
+                disabled={loading}
+                className="px-6 py-3 rounded-2xl bg-indigo-600 text-white shadow-xl shadow-indigo-100 hover:shadow-indigo-300 hover:bg-indigo-700 transition-all flex items-center gap-2 font-bold text-sm active:scale-95"
+              >
+                <RefreshCw size={18} className={loading ? 'animate-spin' : ''} />
+                Refresh Pipeline
+              </button>
+              <button 
+                onClick={() => {
+                  const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(leads, null, 2));
+                  const downloadAnchorNode = document.createElement('a');
+                  downloadAnchorNode.setAttribute("href", dataStr);
+                  downloadAnchorNode.setAttribute("download", `leads_export_${new Date().toISOString().split('T')[0]}.json`);
+                  document.body.appendChild(downloadAnchorNode);
+                  downloadAnchorNode.click();
+                  downloadAnchorNode.remove();
+                }}
+                disabled={loading || leads.length === 0}
+                className="p-3 rounded-2xl border border-slate-200 text-slate-500 hover:bg-slate-50 transition-all"
+                title="Export JSON"
+              >
+                <div className="flex items-center gap-2 text-xs font-bold">
+                   <span className="uppercase text-[10px]">JSON</span>
+                </div>
+              </button>
+            </>
+          )}
         </div>
       </div>
 
@@ -1226,6 +1376,8 @@ function DashboardContent() {
                   onUpdate={handleUpdateLead}
                   isSelected={selectedLeads.includes(l._id)}
                   onToggleSelect={toggleSelect}
+                  viewTrash={viewTrash}
+                  onRestore={handleRestore}
                 />
               ))}
 
