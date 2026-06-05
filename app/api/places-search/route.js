@@ -16,13 +16,14 @@ export async function GET(req) {
       return NextResponse.json({ error: data.error_message || `Google API Error: ${data.status}`, items: [] }, { status: 400 })
     }
 
-    // Map to a small shape for the frontend
     const items = (data.results || []).map(p => ({
       name: p.name,
       address: p.formatted_address,
       place_id: p.place_id,
       location: p.geometry?.location,
-      rating: p.rating
+      rating: p.rating,
+      user_ratings_total: p.user_ratings_total,
+      types: p.types
     }))
 
     return NextResponse.json({ items, raw: data })
