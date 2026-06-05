@@ -66,3 +66,4 @@ Next steps
 - Add frontend UI pages (Next + Tailwind)
 - Add authentication and rate limits
 - Add an email sending flow with Nodemailer (or a transactional provider)
+- Update documentation and README.md
