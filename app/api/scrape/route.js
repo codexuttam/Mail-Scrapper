@@ -18,8 +18,8 @@ export async function POST(req) {
 
     const data = await scrapeBusinesses(query);
 
-    // Generate summaries for all leads
-    for (const item of data) {
+    // Generate summaries for all leads concurrently
+    await Promise.all(data.map(async (item) => {
       if (item.websiteText) {
         item.summary = await generateSummary({ 
           name: item.name, 
@@ -27,7 +27,7 @@ export async function POST(req) {
           websiteText: item.websiteText 
         });
       }
-    }
+    }));
 
     // If save flag provided and DB configured, persist leads (upsert by name+address+userEmail)
     if (save && process.env.MONGODB_URI) {
