@@ -5,10 +5,12 @@ export async function GET(req) {
   try {
     const url = new URL(req.url)
     const q = url.searchParams.get('q') || 'coffee near me'
+    const pagetoken = url.searchParams.get('pagetoken')
     const key = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || process.env.GOOGLE_MAPS_API_KEY
     if (!key) return NextResponse.json({ error: 'Google Maps API Key not set. Please add NEXT_PUBLIC_GOOGLE_MAPS_API_KEY to your .env.local' }, { status: 400 })
 
-    const apiUrl = `https://maps.googleapis.com/maps/api/place/textsearch/json?query=${encodeURIComponent(q)}&key=${key}`
+    let apiUrl = `https://maps.googleapis.com/maps/api/place/textsearch/json?query=${encodeURIComponent(q)}&key=${key}`
+    if (pagetoken) apiUrl += `&pagetoken=${pagetoken}`
     const r = await fetch(apiUrl)
     const data = await r.json()
 
@@ -26,7 +28,7 @@ export async function GET(req) {
       types: p.types
     }))
 
-    return NextResponse.json({ items, raw: data })
+    return NextResponse.json({ items, raw: data, nextPageToken: data.next_page_token })
   } catch (err) {
     console.error('places-search error', err)
     return NextResponse.json({ error: String(err) }, { status: 500 })
