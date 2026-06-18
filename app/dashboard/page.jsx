@@ -1464,9 +1464,17 @@ function DashboardContent() {
       {selectedLeads.length > 0 && (
         <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-[90] animate-in slide-in-from-bottom-8">
            <div className="bg-indigo-600 text-white px-6 py-4 rounded-3xl shadow-2xl flex items-center gap-6 border border-white/20 backdrop-blur-xl">
-              <div className="flex items-center gap-2">
-                 <span className="w-6 h-6 rounded-full bg-white text-indigo-600 flex items-center justify-center text-xs font-black">{selectedLeads.length}</span>
-                 <span className="text-sm font-bold">Leads Selected</span>
+              <div className="flex items-center gap-3">
+                 <div className="flex items-center gap-2">
+                    <span className="w-6 h-6 rounded-full bg-white text-indigo-600 flex items-center justify-center text-xs font-black">{selectedLeads.length}</span>
+                    <span className="text-sm font-bold">Leads Selected</span>
+                 </div>
+                 <button 
+                   onClick={() => setSelectedLeads([])}
+                   className="px-2.5 py-1 text-[9px] font-black uppercase tracking-wider bg-white/20 hover:bg-white/30 text-white rounded-lg transition-all border-none cursor-pointer"
+                 >
+                   Deselect All
+                 </button>
               </div>
               <div className="w-px h-6 bg-white/20"></div>
               {viewTrash ? (
