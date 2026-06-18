@@ -632,7 +632,15 @@ function DashboardContent() {
     router.push(`${pathname}?${params.toString()}`)
   }
   const [showCleanupModal, setShowCleanupModal] = useState(false)
-  const itemsPerPage = 5
+  const [itemsPerPage, setItemsPerPage] = useState(5)
+
+  useEffect(() => {
+    const saved = localStorage.getItem('dashboard_page_size')
+    if (saved) {
+      setItemsPerPage(Number(saved))
+    }
+  }, [])
+
   const itemsPerPageGrid = 5
 
   useEffect(() => {
@@ -1783,38 +1791,60 @@ function DashboardContent() {
                 />
               ))}
 
-              {totalPages > 1 && (
+              {sortedLeads.length > 5 && (
                 <div className="flex items-center justify-between bg-white/50 backdrop-blur-sm p-4 rounded-3xl border border-slate-100 shadow-sm mt-8 animate-in slide-in-from-bottom-4">
-                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-2">
-                    Page {currentPage} of {totalPages}
-                  </p>
-                  <div className="flex items-center gap-1.5 font-bold">
-                    <button 
-                      onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
-                      disabled={currentPage === 1}
-                      className="px-4 py-2 bg-white rounded-xl border border-slate-100 text-slate-400 hover:text-indigo-600 disabled:opacity-30 transition-all text-xs"
-                    >
-                      Prev
-                    </button>
-                    <div className="flex gap-1">
-                      {[...Array(totalPages)].map((_, i) => (
-                        <button
-                          key={i}
-                          onClick={() => setCurrentPage(i + 1)}
-                          className={`w-9 h-9 rounded-xl text-xs transition-all ${currentPage === i + 1 ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-200' : 'bg-white text-slate-400 hover:text-indigo-600'}`}
-                        >
-                          {i + 1}
-                        </button>
-                      ))}
+                  <div className="flex items-center gap-4">
+                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-2">
+                      Page {currentPage} of {totalPages}
+                    </p>
+                    <div className="flex items-center gap-1.5 text-[10px] font-black text-slate-400 uppercase tracking-wider">
+                      <span>Show:</span>
+                      <select 
+                        value={itemsPerPage}
+                        onChange={(e) => {
+                          const val = Number(e.target.value)
+                          setItemsPerPage(val)
+                          localStorage.setItem('dashboard_page_size', String(val))
+                          setCurrentPage(1)
+                        }}
+                        className="bg-white border border-slate-200 rounded-lg px-2 py-1 outline-none text-xs font-bold text-slate-700 dark:bg-slate-800 dark:border-slate-700 dark:text-slate-200"
+                      >
+                        <option value={5}>5</option>
+                        <option value={10}>10</option>
+                        <option value={25}>25</option>
+                        <option value={50}>50</option>
+                      </select>
                     </div>
-                    <button 
-                      onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
-                      disabled={currentPage === totalPages}
-                      className="px-4 py-2 bg-white rounded-xl border border-slate-100 text-slate-400 hover:text-indigo-600 disabled:opacity-30 transition-all text-xs"
-                    >
-                      Next
-                    </button>
                   </div>
+                  {totalPages > 1 && (
+                    <div className="flex items-center gap-1.5 font-bold">
+                      <button 
+                        onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                        disabled={currentPage === 1}
+                        className="px-4 py-2 bg-white rounded-xl border border-slate-100 text-slate-400 hover:text-indigo-600 disabled:opacity-30 transition-all text-xs dark:bg-slate-800 dark:border-slate-700 dark:text-slate-400"
+                      >
+                        Prev
+                      </button>
+                      <div className="flex gap-1">
+                        {[...Array(totalPages)].map((_, i) => (
+                          <button
+                            key={i}
+                            onClick={() => setCurrentPage(i + 1)}
+                            className={`w-9 h-9 rounded-xl text-xs transition-all ${currentPage === i + 1 ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-200' : 'bg-white text-slate-400 hover:text-indigo-600 dark:bg-slate-800 dark:border-slate-700 dark:text-slate-400'}`}
+                          >
+                            {i + 1}
+                          </button>
+                        ))}
+                      </div>
+                      <button 
+                        onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                        disabled={currentPage === totalPages}
+                        className="px-4 py-2 bg-white rounded-xl border border-slate-100 text-slate-400 hover:text-indigo-600 disabled:opacity-30 transition-all text-xs dark:bg-slate-800 dark:border-slate-700 dark:text-slate-400"
+                      >
+                        Next
+                      </button>
+                    </div>
+                  )}
                 </div>
               )}
               {filteredLeads.length === 0 && (
