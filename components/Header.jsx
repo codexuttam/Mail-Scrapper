@@ -1,5 +1,5 @@
 "use client"
-import { Search, Menu, Bell, Trash2, CheckCircle2, Info, X } from 'lucide-react'
+import { Search, Menu, Bell, Trash2, CheckCircle2, Info, X, Sun, Moon } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { useState, useRef, useEffect } from 'react'
 import { useSession } from 'next-auth/react'
@@ -9,6 +9,23 @@ export default function Header({ onMenuClick }) {
   const { data: session } = useSession()
   const [query, setQuery] = useState('')
   const [showNotifications, setShowNotifications] = useState(false)
+  const [isDark, setIsDark] = useState(false)
+
+  useEffect(() => {
+    setIsDark(document.documentElement.classList.contains('dark'))
+  }, [])
+
+  const handleToggleDark = () => {
+    const nextDark = !isDark
+    setIsDark(nextDark)
+    if (nextDark) {
+      document.documentElement.classList.add('dark')
+      localStorage.setItem('theme', 'dark')
+    } else {
+      document.documentElement.classList.remove('dark')
+      localStorage.setItem('theme', 'light')
+    }
+  }
   
   const userName = session?.user?.name || 'User'
   const userInitials = userName.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase()
@@ -61,7 +78,7 @@ export default function Header({ onMenuClick }) {
   }
 
   return (
-    <header className="h-16 border-b bg-white/80 backdrop-blur-md flex items-center justify-between px-8 sticky top-0 z-50">
+    <header className="h-16 border-b bg-white/80 backdrop-blur-md flex items-center justify-between px-8 sticky top-0 z-50 dark:bg-slate-900/80 dark:border-slate-800 dark:text-white">
       <div className="lg:hidden flex items-center gap-3">
         <button onClick={onMenuClick} className="p-2 hover:bg-slate-100 rounded-lg text-slate-600">
           <Menu size={24} />
@@ -103,6 +120,13 @@ export default function Header({ onMenuClick }) {
       </div>
 
       <div className="flex items-center gap-4">
+        <button 
+          onClick={handleToggleDark}
+          className="p-2 rounded-xl transition-all text-slate-500 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800"
+          title={isDark ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
+        >
+          {isDark ? <Sun size={20} className="text-amber-500 animate-in spin-in-12 duration-300" /> : <Moon size={20} className="animate-in spin-in-12 duration-300" />}
+        </button>
         <div className="relative" ref={dropdownRef}>
           <button 
             onClick={() => setShowNotifications(!showNotifications)}
