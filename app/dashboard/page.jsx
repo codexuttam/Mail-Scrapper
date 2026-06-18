@@ -715,6 +715,7 @@ function DashboardContent() {
   const [autoRefresh, setAutoRefresh] = useState(false)
   const [showCleanupModal, setShowCleanupModal] = useState(false)
   const [itemsPerPage, setItemsPerPage] = useState(5)
+  const [statFilter, setStatFilter] = useState(null)
 
   useEffect(() => {
     const saved = localStorage.getItem('dashboard_page_size')
@@ -765,6 +766,13 @@ function DashboardContent() {
     }
     if (chartSourceFilter) {
       matches = matches && (l.source === chartSourceFilter)
+    }
+
+    if (statFilter) {
+      if (statFilter === 'contacted') matches = matches && l.status === 'sent'
+      if (statFilter === 'interested') matches = matches && l.status === 'interested'
+      if (statFilter === 'high_potential') matches = matches && (l.score || 0) >= 80
+      if (statFilter === 'pending') matches = matches && l.status !== 'sent'
     }
 
     return matches
@@ -1796,20 +1804,30 @@ function DashboardContent() {
 
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
          {[
-           { label: 'Total Leads', value: leads.length, color: 'indigo', icon: Search },
-           { label: 'Contacted', value: leads.filter(l => l.status === 'sent').length, color: 'emerald', icon: Send },
-           { label: 'Interested', value: leads.filter(l => l.status === 'interested').length, color: 'blue', icon: MessageSquare },
-           { label: 'High Potential', value: leads.filter(l => l.score >= 80).length, color: 'rose', icon: Zap },
-           { label: 'Pending', value: leads.length - leads.filter(l => l.status === 'sent').length, color: 'amber', icon: Mail },
-           { label: 'Success Rate', value: leads.length ? Math.round((leads.filter(l => l.status === 'sent').length / leads.length) * 100) + '%' : '0%', color: 'emerald', icon: TrendingUp },
+           { label: 'Total Leads', value: leads.length, color: 'indigo', icon: Search, filterKey: null },
+           { label: 'Contacted', value: leads.filter(l => l.status === 'sent').length, color: 'emerald', icon: Send, filterKey: 'contacted' },
+           { label: 'Interested', value: leads.filter(l => l.status === 'interested').length, color: 'blue', icon: MessageSquare, filterKey: 'interested' },
+           { label: 'High Potential', value: leads.filter(l => l.score >= 80).length, color: 'rose', icon: Zap, filterKey: 'high_potential' },
+           { label: 'Pending', value: leads.length - leads.filter(l => l.status === 'sent').length, color: 'amber', icon: Mail, filterKey: 'pending' },
+           { label: 'Success Rate', value: leads.length ? Math.round((leads.filter(l => l.status === 'sent').length / leads.length) * 100) + '%' : '0%', color: 'emerald', icon: TrendingUp, filterKey: null },
          ].map((stat, i) => (
-           <div key={i} className="glass-card p-4 border-none shadow-sm flex items-center gap-4 group hover:bg-white transition-all cursor-default card-stagger">
+           <div 
+             key={i} 
+             onClick={() => {
+               if (stat.filterKey !== undefined) {
+                 setStatFilter(statFilter === stat.filterKey ? null : stat.filterKey)
+                 setCurrentPage(1)
+               }
+             }}
+             className={`glass-card p-4 border-none shadow-sm flex items-center gap-4 group hover:bg-white dark:hover:bg-slate-800 transition-all cursor-pointer card-stagger ${stat.filterKey && statFilter === stat.filterKey ? 'ring-2 ring-indigo-500 bg-white dark:bg-slate-800' : ''}`}
+             title={stat.filterKey ? `Filter by ${stat.label}` : ''}
+           >
               <div className={`p-3 rounded-xl bg-${stat.color}-50 text-${stat.color}-600 group-hover:scale-110 transition-transform`}>
                  <stat.icon size={20} />
               </div>
               <div>
                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-tight">{stat.label}</p>
-                 <p className="text-xl font-black text-slate-900">{stat.value}</p>
+                 <p className="text-xl font-black text-slate-900 dark:text-white">{stat.value}</p>
               </div>
            </div>
          ))}
