@@ -3,7 +3,7 @@ import { useEffect, useState, Suspense } from 'react'
 import Link from 'next/link'
 import { useSearchParams, useRouter, usePathname } from 'next/navigation'
 import { useSession } from 'next-auth/react'
-import { Mail, Trash2, Send, Wand2, RefreshCw, CheckCircle2, AlertCircle, Calendar, MapPin, X, Zap, Loader2, Search, MessageCircle, MessageSquare, AlertTriangle, Copy, TrendingUp, ExternalLink, Tag, Plus, PieChart, Download, Stethoscope, Utensils, Dumbbell, Store, Briefcase, Archive, RotateCcw } from 'lucide-react'
+import { Mail, Trash2, Send, Wand2, RefreshCw, CheckCircle2, AlertCircle, Calendar, MapPin, X, Zap, Loader2, Search, MessageCircle, MessageSquare, AlertTriangle, Copy, TrendingUp, ExternalLink, Tag, Plus, PieChart, Download, Stethoscope, Utensils, Dumbbell, Store, Briefcase, Archive, RotateCcw, Edit2 } from 'lucide-react'
 import { LeadSkeleton } from '../../components/Skeleton'
 
 function formatDate(iso) {
@@ -80,7 +80,7 @@ function Modal({ isOpen, onClose, title, children }) {
   )
 }
 
-function LeadRow({ lead, onGenerate, onSend, onDelete, onArchive, onMagic, isMagicLoading, onUpdate, isSelected, onToggleSelect, viewTrash, onRestore, onTagClick }) {
+function LeadRow({ lead, onGenerate, onSend, onDelete, onArchive, onMagic, isMagicLoading, onUpdate, isSelected, onToggleSelect, viewTrash, onRestore, onTagClick, onEdit }) {
   const [notes, setNotes] = useState(lead.notes || '')
   const [isUpdating, setIsUpdating] = useState(false)
 
@@ -407,6 +407,13 @@ function LeadRow({ lead, onGenerate, onSend, onDelete, onArchive, onMagic, isMag
               <Wand2 size={18} />
             </button>
             <button 
+              onClick={() => onEdit(lead)} 
+              className="p-2.5 rounded-lg bg-slate-100 text-slate-500 hover:bg-slate-200 transition-colors"
+              title="Edit Lead Details"
+            >
+              <Edit2 size={18} />
+            </button>
+            <button 
               onClick={() => onSend(lead)} 
               disabled={!lead.email}
               className={`p-2.5 rounded-lg transition-colors ${!lead.email ? 'bg-slate-50 text-slate-300 cursor-not-allowed' : 'bg-emerald-50 text-emerald-600 hover:bg-emerald-100'}`}
@@ -628,6 +635,51 @@ function DashboardContent() {
   const [modalMessage, setModalMessage] = useState('')
   
   const [notice, setNotice] = useState(null)
+  const [editModalOpen, setEditModalOpen] = useState(false)
+  const [editLead, setEditLead] = useState(null)
+  const [editForm, setEditForm] = useState({ name: '', email: '', phone: '', website: '', tags: [] })
+
+  const handleEditClick = (lead) => {
+    setEditLead(lead)
+    setEditForm({
+      name: lead.name || '',
+      email: lead.email || '',
+      phone: lead.phone || '',
+      website: lead.website || '',
+      tags: lead.tags || []
+    })
+    setEditModalOpen(true)
+  }
+
+  const handleEditSave = async () => {
+    if (!editLead) return
+    setLoading(true)
+    try {
+      const res = await fetch('/api/leads', {
+        method: 'PATCH',
+        body: JSON.stringify({
+          id: editLead._id,
+          updates: editForm
+        }),
+        headers: { 'Content-Type': 'application/json' }
+      })
+      if (res.ok) {
+        const data = await res.json()
+        if (data.lead) {
+          handleUpdateLead(editLead._id, data.lead)
+          setNotice({ type: 'success', message: 'Lead updated successfully' })
+        }
+      } else {
+        const data = await res.json()
+        setNotice({ type: 'error', message: data.error || 'Failed to update lead' })
+      }
+    } catch (err) {
+      setNotice({ type: 'error', message: 'Error: ' + err.message })
+    } finally {
+      setLoading(false)
+      setEditModalOpen(false)
+    }
+  }
   const [selectedChannel, setSelectedChannel] = useState('email')
   const [modalSubject, setModalSubject] = useState('')
   const [modalTone, setModalTone] = useState('friendly')
@@ -1827,6 +1879,7 @@ function DashboardContent() {
                   viewTrash={viewTrash}
                   onRestore={handleRestore}
                   onTagClick={setTagFilter}
+                  onEdit={handleEditClick}
                 />
               ))}
 
@@ -2132,6 +2185,93 @@ function DashboardContent() {
               className="w-full h-12 bg-white text-slate-400 font-bold rounded-xl hover:bg-slate-50 transition-all active:scale-95"
             >
               Cancel & Keep Files
+            </button>
+          </div>
+        </div>
+      </Modal>
+
+      {/* Edit Lead Details Modal */}
+      <Modal 
+        isOpen={editModalOpen}
+        onClose={() => setEditModalOpen(false)}
+        title="Edit Lead Details"
+      >
+        <div className="p-6 bg-white dark:bg-slate-900 space-y-4">
+          <div>
+            <label className="block text-[10px] font-black text-slate-400 uppercase tracking-wider mb-1">Company / Lead Name</label>
+            <input 
+              type="text"
+              value={editForm.name}
+              onChange={(e) => setEditForm(prev => ({ ...prev, name: e.target.value }))}
+              placeholder="e.g. Acme Corp"
+              className="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 dark:bg-slate-800 dark:border-slate-700 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition-all text-xs font-bold text-slate-800 dark:text-slate-200"
+            />
+          </div>
+
+          <div>
+            <label className="block text-[10px] font-black text-slate-400 uppercase tracking-wider mb-1">Email Address</label>
+            <input 
+              type="email"
+              value={editForm.email}
+              onChange={(e) => setEditForm(prev => ({ ...prev, email: e.target.value }))}
+              placeholder="e.g. hello@acme.com"
+              className="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 dark:bg-slate-800 dark:border-slate-700 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition-all text-xs font-bold text-slate-800 dark:text-slate-200"
+            />
+          </div>
+
+          <div>
+            <label className="block text-[10px] font-black text-slate-400 uppercase tracking-wider mb-1">Phone Number</label>
+            <input 
+              type="text"
+              value={editForm.phone}
+              onChange={(e) => setEditForm(prev => ({ ...prev, phone: e.target.value }))}
+              placeholder="e.g. +1234567890"
+              className="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 dark:bg-slate-800 dark:border-slate-700 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition-all text-xs font-bold text-slate-800 dark:text-slate-200"
+            />
+          </div>
+
+          <div>
+            <label className="block text-[10px] font-black text-slate-400 uppercase tracking-wider mb-1">Website URL</label>
+            <input 
+              type="text"
+              value={editForm.website}
+              onChange={(e) => setEditForm(prev => ({ ...prev, website: e.target.value }))}
+              placeholder="e.g. https://acme.com"
+              className="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 dark:bg-slate-800 dark:border-slate-700 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition-all text-xs font-bold text-slate-800 dark:text-slate-200"
+            />
+          </div>
+
+          <div>
+            <label className="block text-[10px] font-black text-slate-400 uppercase tracking-wider mb-1">Tags (comma-separated)</label>
+            <input 
+              type="text"
+              value={editForm.tags.join(', ')}
+              onChange={(e) => {
+                const val = e.target.value;
+                setEditForm(prev => ({ 
+                  ...prev, 
+                  tags: val.split(',').map(t => t.trim()).filter(Boolean) 
+                }))
+              }}
+              placeholder="e.g. VIP, Warm, Hot"
+              className="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 dark:bg-slate-800 dark:border-slate-700 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition-all text-xs font-bold text-slate-800 dark:text-slate-200"
+            />
+          </div>
+
+          <div className="flex gap-2 pt-2">
+            <button 
+              onClick={() => setEditModalOpen(false)}
+              className="px-4 py-2.5 bg-slate-50 border border-slate-200 dark:bg-slate-800 dark:border-slate-700 text-slate-400 text-[10px] font-black uppercase tracking-widest rounded-xl hover:bg-slate-100 transition-all"
+            >
+              Cancel
+            </button>
+            <button 
+              onClick={handleEditSave}
+              disabled={loading || !editForm.name.trim()}
+              className="flex-1 py-2.5 bg-indigo-600 text-white font-black uppercase tracking-widest text-[10px] rounded-xl flex items-center justify-center gap-2 hover:bg-indigo-700 shadow-xl shadow-indigo-200 transition-all active:scale-95 disabled:opacity-50"
+            >
+              {loading ? <Loader2 size={12} className="animate-spin" /> : <CheckCircle2 size={12} />}
+              Save Changes
             </button>
           </div>
         </div>
