@@ -1012,6 +1012,34 @@ function DashboardContent() {
     setNotice({ type: 'success', message: `Exported ${selectedData.length} leads to CSV.` })
   }
 
+  const handleExportJSON = () => {
+    const selectedData = leads.filter(l => selectedLeads.includes(l._id))
+    const cleanData = selectedData.map(({ name, email, phone, address, website, status, score, tags, notes, createdAt }) => ({
+      name,
+      email,
+      phone,
+      address,
+      website,
+      status,
+      score,
+      tags,
+      notes,
+      createdAt
+    }))
+
+    const jsonContent = JSON.stringify(cleanData, null, 2)
+    const blob = new Blob([jsonContent], { type: 'application/json;charset=utf-8;' })
+    const url = URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    link.setAttribute('href', url)
+    link.setAttribute('download', `leads_export_${new Date().toISOString().split('T')[0]}.json`)
+    link.style.visibility = 'hidden'
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+    setNotice({ type: 'success', message: `Exported ${selectedData.length} leads to JSON.` })
+  }
+
   const handleExportPDF = () => {
     const selectedData = leads.filter(l => selectedLeads.includes(l._id))
     if (selectedData.length === 0) return
@@ -1466,6 +1494,13 @@ function DashboardContent() {
                    >
                      <Download size={16} />
                      Export CSV
+                   </button>
+                   <button 
+                     onClick={handleExportJSON}
+                     className="flex items-center gap-2 px-4 py-2 bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 rounded-xl transition-all text-sm font-bold border border-amber-500/20"
+                   >
+                     <Download size={16} />
+                     Export JSON
                    </button>
                    <button 
                      onClick={handleExportPDF}
