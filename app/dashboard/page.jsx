@@ -80,7 +80,7 @@ function Modal({ isOpen, onClose, title, children }) {
   )
 }
 
-function LeadRow({ lead, onGenerate, onSend, onDelete, onArchive, onMagic, isMagicLoading, onUpdate, isSelected, onToggleSelect, viewTrash, onRestore }) {
+function LeadRow({ lead, onGenerate, onSend, onDelete, onArchive, onMagic, isMagicLoading, onUpdate, isSelected, onToggleSelect, viewTrash, onRestore, onTagClick }) {
   const [notes, setNotes] = useState(lead.notes || '')
   const [isUpdating, setIsUpdating] = useState(false)
 
@@ -188,9 +188,26 @@ function LeadRow({ lead, onGenerate, onSend, onDelete, onArchive, onMagic, isMag
           
           <div className="mb-3 flex flex-wrap gap-2 items-center">
              {(lead.tags || []).map((tag, i) => (
-               <span key={i} className={`flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider ${getTagColorClass(tag)}`}>
+               <span 
+                 key={i} 
+                 onClick={(e) => {
+                   e.preventDefault();
+                   e.stopPropagation();
+                   if (onTagClick) onTagClick(tag);
+                 }}
+                 className={`flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider cursor-pointer hover:opacity-80 transition-opacity ${getTagColorClass(tag)}`}
+               >
                  {tag}
-                 <button onClick={() => removeTag(tag)} className="hover:text-rose-600 transition-colors ml-0.5"><X size={10} /></button>
+                 <button 
+                   onClick={(e) => {
+                     e.preventDefault();
+                     e.stopPropagation();
+                     removeTag(tag);
+                   }} 
+                   className="hover:text-rose-600 transition-colors ml-0.5"
+                 >
+                   <X size={10} />
+                 </button>
                </span>
              ))}
              {showTagInput ? (
@@ -1809,6 +1826,7 @@ function DashboardContent() {
                   onToggleSelect={toggleSelect}
                   viewTrash={viewTrash}
                   onRestore={handleRestore}
+                  onTagClick={setTagFilter}
                 />
               ))}
 
