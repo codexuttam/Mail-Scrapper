@@ -621,6 +621,8 @@ function DashboardContent() {
   const [chartDateFilter, setChartDateFilter] = useState(null)
   const [chartStatusFilter, setChartStatusFilter] = useState(null)
   const [chartSourceFilter, setChartSourceFilter] = useState(null)
+  const [tagFilter, setTagFilter] = useState('all')
+  const allTags = [...new Set(leads.flatMap(l => l.tags || []))].sort()
 
   const updateFilters = (key, value) => {
     const params = new URLSearchParams(searchParams)
@@ -667,6 +669,11 @@ function DashboardContent() {
     let matches = matchesSearch
     if (contactFilter === 'email') matches = matches && !!l.email
     if (contactFilter === 'phone') matches = matches && !!l.phone
+
+    // Tag filter
+    if (tagFilter && tagFilter !== 'all') {
+      matches = matches && (l.tags || []).includes(tagFilter)
+    }
 
     // Interactive chart filters
     if (chartDateFilter) {
@@ -1763,6 +1770,20 @@ function DashboardContent() {
                   <option value="contacted">Last Contacted</option>
                 </select>
              </div>
+             {allTags.length > 0 && (
+               <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-xl border border-slate-200 dark:bg-slate-900 dark:border-slate-800">
+                  <select 
+                    value={tagFilter}
+                    onChange={(e) => { setTagFilter(e.target.value); setCurrentPage(1); }}
+                    className="bg-transparent text-[10px] font-black uppercase tracking-wider px-3 py-1.5 outline-none cursor-pointer text-slate-500"
+                  >
+                    <option value="all">All Tags</option>
+                    {allTags.map(t => (
+                      <option key={t} value={t}>{t}</option>
+                    ))}
+                  </select>
+               </div>
+             )}
           </div>
           
           {loading && leads.length === 0 ? (
