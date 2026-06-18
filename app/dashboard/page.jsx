@@ -712,6 +712,7 @@ function DashboardContent() {
     }
     setCurrentPage(1)
   }
+  const [autoRefresh, setAutoRefresh] = useState(false)
   const [showCleanupModal, setShowCleanupModal] = useState(false)
   const [itemsPerPage, setItemsPerPage] = useState(5)
 
@@ -793,6 +794,19 @@ function DashboardContent() {
   }
 
   useEffect(() => { load() }, [viewTrash])
+
+  useEffect(() => {
+    if (!autoRefresh) return
+    const interval = setInterval(() => {
+      if (!loading) {
+        fetch(`/api/leads${viewTrash ? '?trash=true' : ''}`)
+          .then(res => res.json())
+          .then(data => setLeads(data.leads || []))
+          .catch(err => console.error(err))
+      }
+    }, 10000)
+    return () => clearInterval(interval)
+  }, [autoRefresh, viewTrash, loading])
 
   const [campaignType, setCampaignType] = useState('intro')
 
@@ -1681,6 +1695,22 @@ function DashboardContent() {
             </>
           ) : (
             <>
+              <button
+                onClick={() => load()}
+                disabled={loading}
+                className="flex items-center justify-center p-3 rounded-2xl border border-slate-200 text-slate-500 hover:bg-slate-50 transition-all active:scale-95 disabled:opacity-50"
+                title="Refresh Leads"
+              >
+                <RefreshCw size={14} className={loading ? 'animate-spin' : ''} />
+              </button>
+              <button
+                onClick={() => setAutoRefresh(!autoRefresh)}
+                className={`flex items-center gap-2 px-4 py-3 rounded-2xl border text-xs font-bold transition-all active:scale-95 ${autoRefresh ? 'bg-indigo-50 border-indigo-200 text-indigo-600' : 'border-slate-200 text-slate-500 hover:bg-slate-50'}`}
+                title="Toggle Auto Refresh (every 10s)"
+              >
+                <span className={`w-1.5 h-1.5 rounded-full ${autoRefresh ? 'bg-indigo-600 animate-pulse' : 'bg-slate-300'}`}></span>
+                Auto-Refresh
+              </button>
               <button 
                 onClick={() => {
                   setViewTrash(true);
