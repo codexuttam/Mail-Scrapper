@@ -1,6 +1,6 @@
 "use client"
 import { useState, useEffect, useRef } from 'react'
-import { Search, MapPin, Phone, Globe, Save, Loader2, Compass, Layers, Filter, Zap, Info, Camera, Users, MessageSquare } from 'lucide-react'
+import { Search, MapPin, Phone, Globe, Save, Loader2, Compass, Layers, Filter, Zap, Info, Camera, Users, MessageSquare, X } from 'lucide-react'
 import { ResultSkeleton } from '../../components/Skeleton'
 
 function ResultRow({ item, onSave, isSelected, onToggleSelect, isSaved }) {
@@ -346,9 +346,17 @@ export default function FindPage() {
                 value={query} 
                 onChange={(e) => setQuery(e.target.value)} 
                 placeholder="What are you looking for? (e.g. Cafes in Ghaziabad)"
-                className="w-full pl-12 pr-4 py-4 bg-transparent text-lg font-medium focus:outline-none placeholder:text-slate-300" 
+                className="w-full pl-12 pr-12 py-4 bg-transparent text-lg font-medium focus:outline-none placeholder:text-slate-300" 
                 onKeyDown={(e) => e.key === 'Enter' && (searchMethod === 'places' ? runPlacesSearch() : runSearch())}
               />
+              {query && (
+                <button 
+                  onClick={() => setQuery('')}
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-rose-500 transition-colors p-1"
+                >
+                  <X size={20} />
+                </button>
+              )}
             </div>
             <button 
               onClick={searchMethod === 'places' ? runPlacesSearch : () => runSearch(false)} 

@@ -79,10 +79,26 @@ export default function Header({ onMenuClick }) {
             type="text" 
             placeholder="Search leads..." 
             value={query}
-            onChange={(e) => setQuery(e.target.value)}
+            onChange={(e) => {
+              setQuery(e.target.value)
+              if (!e.target.value) {
+                router.push('/dashboard')
+              }
+            }}
             onKeyDown={handleSearch}
-            className="w-full pl-10 pr-4 py-2 bg-slate-100 border-2 border-transparent rounded-full text-sm focus:bg-white focus:border-indigo-500/20 focus:ring-4 focus:ring-indigo-500/5 outline-none transition-all"
+            className="w-full pl-10 pr-10 py-2 bg-slate-100 border-2 border-transparent rounded-full text-sm focus:bg-white focus:border-indigo-500/20 focus:ring-4 focus:ring-indigo-500/5 outline-none transition-all"
           />
+          {query && (
+            <button 
+              onClick={() => {
+                setQuery('')
+                router.push('/dashboard')
+              }}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-rose-500 transition-colors p-1"
+            >
+              <X size={14} />
+            </button>
+          )}
         </div>
       </div>
 
