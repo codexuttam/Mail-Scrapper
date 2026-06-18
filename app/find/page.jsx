@@ -148,6 +148,7 @@ export default function FindPage() {
   const [loading, setLoading] = useState(false)
   const [searchMethod, setSearchMethod] = useState('scrape')
   const [emailOnly, setEmailOnly] = useState(false)
+  const [sortBy, setSortBy] = useState('none')
   const [selectedNames, setSelectedNames] = useState([])
   const [savedNames, setSavedNames] = useState([])
   const [bulkSaving, setBulkSaving] = useState(false)
@@ -283,12 +284,14 @@ export default function FindPage() {
     }
   }
 
-  const toggleSort = () => {
-    const sorted = [...results].sort((a, b) => (b.rating || 0) - (a.rating || 0))
-    setResults(sorted)
-  }
-
   const filteredResults = results.filter(r => emailOnly ? (r.emails && r.emails.length > 0) : true)
+
+  const sortedResults = [...filteredResults].sort((a, b) => {
+    if (sortBy === 'nameAsc') return a.name.localeCompare(b.name)
+    if (sortBy === 'nameDesc') return b.name.localeCompare(a.name)
+    if (sortBy === 'ratingDesc') return (b.rating || 0) - (a.rating || 0)
+    return 0
+  })
   const isAllSelected = filteredResults.length > 0 && filteredResults.every(r => selectedNames.includes(r.name) || savedNames.includes(r.name))
 
   const toggleSelectAll = () => {
@@ -428,9 +431,18 @@ export default function FindPage() {
                 </button>
               )}
               {results.length > 0 && (
-                <button onClick={toggleSort} className="text-sm font-bold text-indigo-600 flex items-center gap-1 hover:underline active:scale-95 transition-all">
-                   <Filter size={14} /> Sort by Rating
-                </button>
+                <div className="flex items-center gap-1.5 bg-slate-100 dark:bg-slate-900 p-1 rounded-xl border border-slate-200 dark:border-slate-800">
+                  <select 
+                    value={sortBy}
+                    onChange={(e) => setSortBy(e.target.value)}
+                    className="bg-transparent text-[10px] font-black uppercase tracking-wider px-2 py-1.5 outline-none cursor-pointer text-slate-500"
+                  >
+                    <option value="none">Original Order</option>
+                    <option value="nameAsc">Name A-Z</option>
+                    <option value="nameDesc">Name Z-A</option>
+                    <option value="ratingDesc">Highest Rating</option>
+                  </select>
+                </div>
               )}
             </div>
           </div>
@@ -451,7 +463,7 @@ export default function FindPage() {
              </div>
           ) : results.length > 0 ? (
             <div className="animate-in">
-              {filteredResults
+              {sortedResults
                 .map((r, idx) => (
                    <ResultRow 
                      key={idx} 
