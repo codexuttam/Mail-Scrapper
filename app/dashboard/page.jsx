@@ -913,10 +913,10 @@ function DashboardContent() {
   }
 
   const toggleSelectAll = () => {
-    if (selectedLeads.length === paginatedLeads.length) {
+    if (selectedLeads.length === sortedLeads.length) {
       setSelectedLeads([])
     } else {
-      setSelectedLeads(paginatedLeads.map(l => l._id))
+      setSelectedLeads(sortedLeads.map(l => l._id))
     }
   }
 
@@ -1756,7 +1756,7 @@ function DashboardContent() {
                   onClick={toggleSelectAll}
                   className="text-[10px] font-black text-indigo-600 uppercase tracking-widest hover:underline"
                 >
-                  {selectedLeads.length === paginatedLeads.length && paginatedLeads.length > 0 ? 'Deselect All' : 'Select Page'}
+                  {selectedLeads.length === sortedLeads.length && sortedLeads.length > 0 ? 'Deselect All' : 'Select All Leads'}
                 </button>
              </div>
              
