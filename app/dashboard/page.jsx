@@ -631,6 +631,7 @@ function DashboardContent() {
   const [previewMessage, setPreviewMessage] = useState('')
   
   const [modalOpen, setModalOpen] = useState(false)
+  const [showAnalytics, setShowAnalytics] = useState(true)
   const [modalLead, setModalLead] = useState(null)
   const [modalMessage, setModalMessage] = useState('')
   
@@ -1731,21 +1732,34 @@ function DashboardContent() {
            </div>
          ))}
       </div>
-
-      <div className="grid lg:grid-cols-2 gap-6">
-         <PipelineAnalyticsChart 
-           leads={leads}
-           activeStatus={chartStatusFilter}
-           onSelectStatus={setChartStatusFilter}
-           activeSource={chartSourceFilter}
-           onSelectSource={setChartSourceFilter}
-         />
-         <LeadGrowthChart 
-           leads={leads}
-           activeDate={chartDateFilter}
-           onSelectDate={setChartDateFilter}
-         />
+      <div className="flex justify-between items-center px-2 pt-2 border-t border-slate-100 dark:border-slate-800">
+        <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">
+          Pipeline Visualizer
+        </h3>
+        <button
+          onClick={() => setShowAnalytics(!showAnalytics)}
+          className="text-[10px] font-black uppercase tracking-widest text-indigo-600 hover:text-indigo-800 dark:text-indigo-400 dark:hover:text-indigo-300 underline"
+        >
+          {showAnalytics ? 'Collapse Analytics' : 'Expand Analytics'}
+        </button>
       </div>
+
+      {showAnalytics && (
+        <div className="grid lg:grid-cols-2 gap-6 animate-in fade-in duration-200">
+           <PipelineAnalyticsChart 
+             leads={leads}
+             activeStatus={chartStatusFilter}
+             onSelectStatus={setChartStatusFilter}
+             activeSource={chartSourceFilter}
+             onSelectSource={setChartSourceFilter}
+           />
+           <LeadGrowthChart 
+             leads={leads}
+             activeDate={chartDateFilter}
+             onSelectDate={setChartDateFilter}
+           />
+        </div>
+      )}
 
       {notice && (
         <div className={`animate-in p-4 rounded-xl border flex items-center justify-between shadow-lg mb-6 ${notice.type === 'success' ? 'bg-emerald-50 border-emerald-100 text-emerald-800' : 'bg-rose-50 border-rose-100 text-rose-800'}`}>
