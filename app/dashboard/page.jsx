@@ -691,7 +691,7 @@ function DashboardContent() {
   const [chartDateFilter, setChartDateFilter] = useState(null)
   const [chartStatusFilter, setChartStatusFilter] = useState(null)
   const [chartSourceFilter, setChartSourceFilter] = useState(null)
-  const [tagFilter, setTagFilter] = useState('all')
+  const [tagFilters, setTagFilters] = useState([])
   const allTags = [...new Set(leads.flatMap(l => l.tags || []))].sort()
 
   const updateFilters = (key, value) => {
@@ -702,6 +702,15 @@ function DashboardContent() {
       params.delete(key)
     }
     router.push(`${pathname}?${params.toString()}`)
+  }
+
+  const handleAddTagFilter = (tag) => {
+    if (tag === 'all') {
+      setTagFilters([])
+    } else if (tag && !tagFilters.includes(tag)) {
+      setTagFilters(prev => [...prev, tag])
+    }
+    setCurrentPage(1)
   }
   const [showCleanupModal, setShowCleanupModal] = useState(false)
   const [itemsPerPage, setItemsPerPage] = useState(5)
@@ -741,8 +750,8 @@ function DashboardContent() {
     if (contactFilter === 'phone') matches = matches && !!l.phone
 
     // Tag filter
-    if (tagFilter && tagFilter !== 'all') {
-      matches = matches && (l.tags || []).includes(tagFilter)
+    if (tagFilters.length > 0) {
+      matches = matches && tagFilters.every(t => (l.tags || []).includes(t))
     }
 
     // Interactive chart filters
@@ -1779,9 +1788,9 @@ function DashboardContent() {
         </div>
       )}
 
-      {(chartDateFilter || chartStatusFilter || chartSourceFilter) && (
-        <div className="flex flex-wrap items-center gap-2 px-2 py-1.5 bg-slate-50 rounded-xl border border-slate-100 dark:bg-slate-900/50 dark:border-slate-800 mb-2">
-          <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest pl-1">Active Chart Filters:</span>
+      {(chartDateFilter || chartStatusFilter || chartSourceFilter || tagFilters.length > 0) && (
+        <div className="flex flex-wrap items-center gap-2 px-2 py-1.5 bg-slate-50 rounded-xl border border-slate-100 dark:bg-slate-900/50 dark:border-slate-800 mb-2 animate-in fade-in duration-150">
+          <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest pl-1">Active Filters:</span>
           {chartDateFilter && (
             <span className="inline-flex items-center gap-1.5 bg-indigo-50 text-indigo-700 px-2.5 py-1 rounded-lg text-[10px] font-bold border border-indigo-100 dark:bg-indigo-950/20 dark:text-indigo-400 dark:border-indigo-900 uppercase">
               Date: {chartDateFilter}
@@ -1800,11 +1809,18 @@ function DashboardContent() {
               <button onClick={() => setChartSourceFilter(null)} className="hover:text-blue-900 font-bold dark:hover:text-blue-200"><X size={10} /></button>
             </span>
           )}
+          {tagFilters.map(t => (
+            <span key={t} className="inline-flex items-center gap-1.5 bg-purple-50 text-purple-700 px-2.5 py-1 rounded-lg text-[10px] font-bold border border-purple-100 dark:bg-purple-950/20 dark:text-purple-400 dark:border-purple-900 uppercase">
+              Tag: {t}
+              <button onClick={() => setTagFilters(prev => prev.filter(x => x !== t))} className="hover:text-purple-900 font-bold dark:hover:text-purple-200"><X size={10} /></button>
+            </span>
+          ))}
           <button 
             onClick={() => {
               setChartDateFilter(null)
               setChartStatusFilter(null)
               setChartSourceFilter(null)
+              setTagFilters([])
             }} 
             className="text-[10px] font-bold text-rose-600 hover:text-rose-800 dark:text-rose-400 dark:hover:text-rose-300 underline uppercase tracking-widest pl-2"
           >
@@ -1856,11 +1872,12 @@ function DashboardContent() {
              {allTags.length > 0 && (
                <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-xl border border-slate-200 dark:bg-slate-900 dark:border-slate-800">
                   <select 
-                    value={tagFilter}
-                    onChange={(e) => { setTagFilter(e.target.value); setCurrentPage(1); }}
+                    value=""
+                    onChange={(e) => { handleAddTagFilter(e.target.value); }}
                     className="bg-transparent text-[10px] font-black uppercase tracking-wider px-3 py-1.5 outline-none cursor-pointer text-slate-500"
                   >
-                    <option value="all">All Tags</option>
+                    <option value="" disabled>Filter by Tag...</option>
+                    <option value="all">Clear Tag Filters</option>
                     {allTags.map(t => (
                       <option key={t} value={t}>{t}</option>
                     ))}
@@ -1892,7 +1909,7 @@ function DashboardContent() {
                   onToggleSelect={toggleSelect}
                   viewTrash={viewTrash}
                   onRestore={handleRestore}
-                  onTagClick={setTagFilter}
+                  onTagClick={handleAddTagFilter}
                   onEdit={handleEditClick}
                 />
               ))}
