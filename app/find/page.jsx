@@ -5,10 +5,11 @@ import { ResultSkeleton } from '../../components/Skeleton'
 
 function ResultRow({ item, onSave, isSelected, onToggleSelect, isSaved }) {
   const [isSaving, setIsSaving] = useState(false)
+  const [preNotes, setPreNotes] = useState('')
 
   const handleSave = async () => {
     setIsSaving(true)
-    await onSave(item)
+    await onSave(item, preNotes)
     setIsSaving(false)
   }
 
@@ -48,6 +49,22 @@ function ResultRow({ item, onSave, isSelected, onToggleSelect, isSaved }) {
               <p className="text-[11px] font-medium text-slate-500 italic mt-2 border-l-2 border-indigo-200 pl-3 leading-relaxed">
                 "{item.summary}"
               </p>
+            )}
+            {!isSaved && (
+              <div className="mt-3 max-w-md">
+                <input 
+                  type="text" 
+                  value={preNotes}
+                  onChange={(e) => setPreNotes(e.target.value)}
+                  placeholder="Add pre-save notes (e.g. key contact, project size)..."
+                  className="w-full bg-slate-50 border border-slate-200 text-xs py-1.5 px-3 rounded-xl focus:ring-2 focus:ring-indigo-500/20 focus:border-transparent outline-none text-slate-700 placeholder:italic dark:bg-slate-800 dark:border-slate-700 dark:text-slate-200 dark:placeholder:text-slate-500"
+                />
+              </div>
+            )}
+            {isSaved && preNotes && (
+              <div className="mt-3 p-2 bg-emerald-50/50 dark:bg-emerald-950/10 rounded-xl border border-emerald-100 dark:border-emerald-900/30 text-xs text-slate-600 dark:text-slate-300">
+                <strong>Saved Note:</strong> {preNotes}
+              </div>
             )}
           </div>
 
@@ -260,10 +277,9 @@ export default function FindPage() {
     leafletMap.current.setView([first.lat, first.lng], 13)
   }
 
-  async function saveItem(item) {
+  async function saveItem(item, notes = '') {
     try {
       const res = await fetch('/api/leads', { 
-        method: 'POST', 
         body: JSON.stringify({ 
           name: item.name, 
           email: (item.emails && item.emails.length > 0) ? item.emails[0] : '',
@@ -272,8 +288,10 @@ export default function FindPage() {
           website: item.website || item.link || '', 
           socials: item.socials,
           summary: item.summary || '',
-          location: query  
+          location: query,
+          notes: notes
         }),
+        method: 'POST',
         headers: { 'Content-Type': 'application/json' } 
       })
       if (res.ok) {
