@@ -11,3 +11,4 @@ Update 8: Implementation of core feature 8
 Update 9: Implementation of core feature 9
 Update 10: Implementation of core feature 10
 Update 11: Implementation of core feature 11
+Update 12: Implementation of core feature 12
