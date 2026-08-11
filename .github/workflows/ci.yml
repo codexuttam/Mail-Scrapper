@@ -17,7 +17,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '18'
+          node-version: '20'
           cache: 'npm'
 
       - name: Install dependencies
@@ -32,5 +32,9 @@ jobs:
           NEXTAUTH_SECRET: "mock_secret"
           NEXTAUTH_URL: "http://localhost:3000"
 
-      - name: Lint (if available)
+      - name: Test
+        run: npm test --if-present
+
+      - name: Lint
         run: npm run lint --if-present
+
