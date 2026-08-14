@@ -339,8 +339,13 @@ export default function FindPage() {
     <div className="space-y-8 pb-12">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-extrabold text-indigo-950">Find Businesses</h1>
-          <p className="text-slate-500">Extract verified business data directly from Google Maps without API limits.</p>
+          <h1 className="text-3xl font-extrabold text-indigo-950 flex items-center gap-3">
+            <div className="p-2 bg-indigo-100 rounded-lg text-indigo-600">
+              <Search size={24} />
+            </div>
+            Find Businesses
+          </h1>
+          <p className="text-slate-500 mt-2">Extract verified business data directly from Google Maps without API limits.</p>
         </div>
         <div className="flex bg-white rounded-lg p-1 border shadow-sm">
           <button 
