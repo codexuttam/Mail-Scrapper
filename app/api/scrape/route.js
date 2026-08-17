@@ -6,32 +6,63 @@ import { scrapeBusinesses } from '../../../lib/scraper';
 import { generateSummary } from '../../../lib/openai';
 import connect from '../../../lib/db';
 import Lead from '../../../models/Lead';
+import ScrapeCache from '../../../models/ScrapeCache';
+
+const rateLimitMap = new Map();
 
 export async function POST(req) {
   try {
     const session = await getServerSession(authOptions)
 
     const { query, save } = await req.json();
-    if (!query) return NextResponse.json({ error: 'Missing query' }, { status: 400 });
+    if (!query) return NextResponse.json({ error: { message: 'Missing query' } }, { status: 400 });
 
-    if (save && !session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    if (save && !session) return NextResponse.json({ error: { message: "Unauthorized" } }, { status: 401 })
 
-    const data = await scrapeBusinesses(query);
+    await connect();
 
-    // Generate summaries for all leads concurrently
-    await Promise.all(data.map(async (item) => {
-      if (item.websiteText) {
-        item.summary = await generateSummary({ 
-          name: item.name, 
-          type: query.split(' in ')[0] || 'business', 
-          websiteText: item.websiteText 
-        });
-      }
-    }));
+    // In-memory Rate Limiting
+    const ip = req.headers.get('x-forwarded-for') || (session ? session.user.email : 'anonymous');
+    const now = Date.now();
+    const windowMs = 60 * 1000;
+    const maxRequests = 5;
+
+    const windowStart = now - windowMs;
+    const requestTimestamps = rateLimitMap.get(ip) || [];
+    const validRequests = requestTimestamps.filter(timestamp => timestamp > windowStart);
+
+    if (validRequests.length >= maxRequests) {
+      return NextResponse.json({ error: { code: 'RATE_LIMIT_EXCEEDED', message: 'Too many scrape requests. Please try again later.' } }, { status: 429 });
+    }
+
+    validRequests.push(now);
+    rateLimitMap.set(ip, validRequests);
+
+    let data;
+    const cachedData = await ScrapeCache.findOne({ query });
+
+    if (cachedData) {
+      data = cachedData.results;
+    } else {
+      data = await scrapeBusinesses(query);
+
+      // Generate summaries for all leads concurrently
+      await Promise.all(data.map(async (item) => {
+        if (item.websiteText) {
+          item.summary = await generateSummary({ 
+            name: item.name, 
+            type: query.split(' in ')[0] || 'business', 
+            websiteText: item.websiteText 
+          });
+        }
+      }));
+
+      // Cache the results
+      await ScrapeCache.create({ query, results: data });
+    }
 
     // If save flag provided and DB configured, persist leads (upsert by name+address+userEmail)
     if (save && process.env.MONGODB_URI) {
-      await connect();
       const saved = [];
       for (const item of data) {
         const filter = { name: item.name || '', address: item.address || '', userEmail: session.user.email };
@@ -56,6 +87,6 @@ export async function POST(req) {
     return NextResponse.json({ data });
   } catch (err) {
     console.error('scrape error', err);
-    return NextResponse.json({ error: String(err) }, { status: 500 });
+    return NextResponse.json({ error: { message: String(err) } }, { status: 500 });
   }
 }
