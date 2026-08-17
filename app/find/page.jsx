@@ -1,6 +1,6 @@
 "use client"
 import { useState, useEffect, useRef } from 'react'
-import { Search, MapPin, Phone, Globe, Save, Loader2, Compass, Layers, Filter, Zap, Info, Camera, Users, MessageSquare, X } from 'lucide-react'
+import { Search, MapPin, Phone, Globe, Save, Loader2, Compass, Layers, Filter, Zap, Info, Camera, Users, MessageSquare, X, Download, Trash2 } from 'lucide-react'
 import { ResultSkeleton } from '../../components/Skeleton'
 
 function ResultRow({ item, onSave, isSelected, onToggleSelect, isSaved }) {
@@ -335,6 +335,49 @@ export default function FindPage() {
     }
   }
 
+  const exportToCSV = () => {
+    const itemsToExport = selectedNames.length > 0 
+      ? filteredResults.filter(r => selectedNames.includes(r.name))
+      : filteredResults;
+      
+    if (itemsToExport.length === 0) return;
+    
+    const headers = ['Name', 'Phone', 'Email', 'Address', 'Website', 'Rating'];
+    const csvContent = [
+      headers.join(','),
+      ...itemsToExport.map(item => {
+        const email = item.emails && item.emails.length > 0 ? item.emails[0] : '';
+        const website = item.website || item.link || '';
+        return [
+          `"${(item.name || '').replace(/"/g, '""')}"`,
+          `"${(item.phone || '').replace(/"/g, '""')}"`,
+          `"${email.replace(/"/g, '""')}"`,
+          `"${(item.address || '').replace(/"/g, '""')}"`,
+          `"${website.replace(/"/g, '""')}"`,
+          `"${item.rating || ''}"`
+        ].join(',');
+      })
+    ].join('\n');
+    
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.setAttribute('href', url);
+    link.setAttribute('download', `leads_export_${new Date().toISOString().split('T')[0]}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  const clearResults = () => {
+    setResults([]);
+    setSelectedNames([]);
+    setQuery('');
+    if (markersGroup.current) {
+      markersGroup.current.clearLayers();
+    }
+  };
+
   return (
     <div className="space-y-8 pb-12">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -364,7 +407,7 @@ export default function FindPage() {
       </div>
 
       <div className="space-y-3">
-        <div className="glass-card p-2 md:p-3 overflow-hidden shadow-2xl shadow-indigo-500/10">
+        <div className="glass-card p-2 md:p-3 overflow-hidden shadow-2xl shadow-indigo-500/10 bg-gradient-to-r from-indigo-50/80 via-white to-purple-50/80 border border-indigo-100/50">
           <div className="flex flex-col md:flex-row gap-2">
             <div className="relative flex-1">
               <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" size={20} />
@@ -454,6 +497,24 @@ export default function FindPage() {
                 </button>
               )}
               {results.length > 0 && (
+                <button 
+                  onClick={exportToCSV}
+                  className="px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 shadow-md shadow-emerald-100"
+                >
+                  <Download size={12} />
+                  Export CSV
+                </button>
+              )}
+              {results.length > 0 && (
+                <button 
+                  onClick={clearResults}
+                  className="px-3.5 py-1.5 bg-rose-50 hover:bg-rose-100 text-rose-600 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5"
+                >
+                  <Trash2 size={12} />
+                  Clear
+                </button>
+              )}
+              {results.length > 0 && (
                 <div className="flex items-center gap-1.5 bg-slate-100 dark:bg-slate-900 p-1 rounded-xl border border-slate-200 dark:border-slate-800">
                   <select 
                     value={sortBy}
@@ -506,9 +567,16 @@ export default function FindPage() {
               }
             </div>
           ) : (
-            <div className="flex flex-col items-center justify-center py-20 bg-white rounded-3xl border-2 border-dashed border-slate-200 text-slate-400">
-               <Compass size={48} className="mb-4 opacity-20" />
-               <p className="font-medium italic">No results found yet. Start a search above.</p>
+            <div className="flex flex-col items-center justify-center py-24 bg-gradient-to-b from-white to-slate-50/50 rounded-3xl border border-slate-200 text-slate-400 shadow-sm relative overflow-hidden group">
+               <div className="absolute inset-0 bg-grid-slate-100/[0.2] bg-[size:16px_16px]"></div>
+               <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-indigo-50/50 rounded-full blur-3xl group-hover:bg-indigo-100/50 transition-colors duration-700"></div>
+               <div className="relative z-10 flex flex-col items-center">
+                 <div className="w-20 h-20 bg-indigo-50 rounded-2xl flex items-center justify-center mb-6 shadow-sm border border-indigo-100/50 group-hover:scale-110 transition-transform duration-500">
+                   <Compass size={40} className="text-indigo-400" />
+                 </div>
+                 <h3 className="text-xl font-bold text-slate-700 mb-2">Ready to explore?</h3>
+                 <p className="font-medium text-slate-500 max-w-sm text-center leading-relaxed">Start a search above to discover fresh, high-quality business leads in seconds.</p>
+               </div>
             </div>
           )}
         </div>

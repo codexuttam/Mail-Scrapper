@@ -60,15 +60,15 @@ function Modal({ isOpen, onClose, title, children }) {
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-950/40 backdrop-blur-sm animate-in fade-in duration-300">
       <div onClick={onClose} className="absolute inset-0 z-0"></div>
-      <div className="relative z-10 bg-white w-full max-w-lg rounded-3xl shadow-[0_32px_64px_-16px_rgba(0,0,0,0.2)] animate-in zoom-in-95 duration-300 flex flex-col overflow-hidden border border-white/20">
-        <div className="px-6 py-4 border-b flex items-center justify-between bg-white shrink-0">
-          <h3 className="font-black text-base text-indigo-950 flex items-center gap-2">
+      <div className="relative z-10 bg-white dark:bg-slate-900 w-full max-w-lg rounded-3xl shadow-[0_32px_64px_-16px_rgba(0,0,0,0.2)] animate-in zoom-in-95 duration-300 flex flex-col overflow-hidden border border-white/20 dark:border-white/10">
+        <div className="px-6 py-4 border-b dark:border-slate-800 flex items-center justify-between bg-white dark:bg-slate-900 shrink-0">
+          <h3 className="font-black text-base text-indigo-950 dark:text-indigo-50 flex items-center gap-2">
              <div className="p-1 bg-indigo-600 rounded text-white">
                 <Mail size={14} />
              </div>
             {title}
           </h3>
-          <button onClick={onClose} className="p-1.5 hover:bg-slate-100 rounded-full transition-all text-slate-400">
+          <button onClick={onClose} className="p-1.5 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full transition-all text-slate-400">
             <X size={18} />
           </button>
         </div>
@@ -1927,7 +1927,7 @@ function DashboardContent() {
                 <span className="text-sm font-bold text-slate-400 uppercase tracking-widest">{filteredLeads.length} Leads in Pipeline</span>
                 <button 
                   onClick={toggleSelectAll}
-                  className="text-[10px] font-black text-indigo-600 uppercase tracking-widest hover:underline"
+                  className="text-[10px] font-black text-indigo-600 dark:text-indigo-400 uppercase tracking-widest hover:underline"
                 >
                   {selectedLeads.length === sortedLeads.length && sortedLeads.length > 0 ? 'Deselect All' : 'Select All Leads'}
                 </button>
@@ -2006,7 +2006,7 @@ function DashboardContent() {
               ))}
 
               {sortedLeads.length > 5 && (
-                <div className="flex items-center justify-between bg-white/50 backdrop-blur-sm p-4 rounded-3xl border border-slate-100 shadow-sm mt-8 animate-in slide-in-from-bottom-4">
+                <div className="flex items-center justify-between bg-white/50 dark:bg-slate-900/50 backdrop-blur-sm p-4 rounded-3xl border border-slate-100 dark:border-slate-800 shadow-sm mt-8 animate-in slide-in-from-bottom-4">
                   <div className="flex items-center gap-4">
                     <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-2">
                       Page {currentPage} of {totalPages}
@@ -2062,14 +2062,14 @@ function DashboardContent() {
                 </div>
               )}
               {filteredLeads.length === 0 && (
-                <div className="py-20 flex flex-col items-center justify-center bg-white rounded-3xl border-2 border-dashed border-slate-200 text-slate-400">
+                <div className="py-20 flex flex-col items-center justify-center bg-white dark:bg-slate-900/50 rounded-3xl border-2 border-dashed border-slate-200 dark:border-slate-800 text-slate-400">
                    <Search size={48} className="mb-4 opacity-20" />
                    <p className="font-medium italic">No leads match "{searchQuery}"</p>
                 </div>
               )}
             </div>
           ) : (
-            <div className="py-20 flex flex-col items-center justify-center bg-white rounded-3xl border-2 border-dashed border-slate-200 text-slate-400">
+            <div className="py-20 flex flex-col items-center justify-center bg-white dark:bg-slate-900/50 rounded-3xl border-2 border-dashed border-slate-200 dark:border-slate-800 text-slate-400">
                <Mail size={48} className="mb-4 opacity-20" />
                <p className="font-medium italic">Your pipeline is empty. Go find some leads!</p>
             </div>
@@ -2144,15 +2144,15 @@ function DashboardContent() {
               </div>
             </div>
           ) : (
-            <div className="bg-white rounded-2xl border-2 border-dashed border-slate-200 p-8 text-center sticky top-24">
-               <Wand2 size={40} className="mx-auto mb-4 text-slate-200" />
+            <div className="bg-white dark:bg-slate-900/50 rounded-2xl border-2 border-dashed border-slate-200 dark:border-slate-800 p-8 text-center sticky top-24">
+               <Wand2 size={40} className="mx-auto mb-4 text-slate-200 dark:text-slate-600" />
                <p className="text-slate-400 text-sm italic">Select "Generate" on a lead to draft an AI-powered outreach message here.</p>
             </div>
           )}
 
-          <div className="bg-indigo-50 rounded-2xl p-6 border border-indigo-100">
-             <h4 className="font-bold text-indigo-900 mb-2">Campaign Tip</h4>
-             <p className="text-sm text-indigo-700 leading-relaxed">Follow-ups increase conversion rates by up to 3x. Use the "New" filter to find leads you haven't contacted yet.</p>
+          <div className="bg-indigo-50 dark:bg-indigo-950/30 rounded-2xl p-6 border border-indigo-100 dark:border-indigo-900/50">
+             <h4 className="font-bold text-indigo-900 dark:text-indigo-300 mb-2">Campaign Tip</h4>
+             <p className="text-sm text-indigo-700 dark:text-indigo-400/80 leading-relaxed">Follow-ups increase conversion rates by up to 3x. Use the "New" filter to find leads you haven't contacted yet.</p>
           </div>
         </div>
       </div>
@@ -2162,9 +2162,9 @@ function DashboardContent() {
         onClose={() => setModalOpen(false)} 
         title="Direct Outreach"
       >
-        <div className="bg-white">
+        <div className="bg-white dark:bg-slate-900">
           {/* Compact Lead Header */}
-          <div className="px-4 py-2.5 bg-slate-50/50 border-b flex items-center justify-between">
+          <div className="px-4 py-2.5 bg-slate-50/50 dark:bg-slate-900 border-b dark:border-slate-800 flex items-center justify-between">
             <div className="flex items-center gap-2">
               <div className="w-7 h-7 rounded-lg bg-indigo-600 text-white flex items-center justify-center font-bold text-[10px] shadow-sm">
                 {modalLead?.name?.charAt(0)}
