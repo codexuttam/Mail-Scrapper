@@ -8,6 +8,8 @@ import Header from '../components/Header'
 import Providers from '../components/Providers'
 import { signOut } from "next-auth/react"
 
+import { Toaster } from 'sonner';
+
 export default function RootLayout({ children }) {
   const pathname = usePathname()
   const router = useRouter()
@@ -43,6 +45,7 @@ export default function RootLayout({ children }) {
       <html lang="en">
         <body className="bg-slate-50 text-slate-900 font-sans dark:bg-slate-950 dark:text-slate-100">
           <Providers>
+            <Toaster position="bottom-right" theme={isDarkMode ? 'dark' : 'light'} />
             {children}
           </Providers>
         </body>
@@ -59,6 +62,7 @@ export default function RootLayout({ children }) {
       </head>
       <body className="bg-slate-50 text-slate-900 font-sans selection:bg-indigo-100 selection:text-indigo-900 dark:bg-slate-950 dark:text-slate-100">
         <Providers>
+          <Toaster position="bottom-right" theme={isDarkMode ? 'dark' : 'light'} />
           <div className="flex min-h-screen">
             {/* Sidebar */}
             <aside className="w-64 border-r bg-white flex flex-col hidden lg:flex sticky top-0 h-screen dark:bg-slate-900 dark:border-slate-800">

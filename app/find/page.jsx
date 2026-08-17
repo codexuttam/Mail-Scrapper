@@ -1,7 +1,8 @@
 "use client"
 import { useState, useEffect, useRef } from 'react'
-import { Search, MapPin, Phone, Globe, Save, Loader2, Compass, Layers, Filter, Zap, Info, Camera, Users, MessageSquare, X, Download, Trash2 } from 'lucide-react'
+import { Search, MapPin, Phone, Globe, Save, Loader2, Compass, Layers, Filter, Zap, Info, Camera, Users, MessageSquare, X, Download, Trash2, ChevronLeft, ChevronRight } from 'lucide-react'
 import { ResultSkeleton } from '../../components/Skeleton'
+import { toast } from 'sonner'
 
 function ResultRow({ item, onSave, isSelected, onToggleSelect, isSaved }) {
   const [isSaving, setIsSaving] = useState(false)
@@ -169,6 +170,9 @@ export default function FindPage() {
   const [selectedNames, setSelectedNames] = useState([])
   const [savedNames, setSavedNames] = useState([])
   const [bulkSaving, setBulkSaving] = useState(false)
+  const [currentPage, setCurrentPage] = useState(1)
+  const itemsPerPage = 20
+  const abortControllerRef = useRef(null)
   
   const mapRef = useRef(null)
   const leafletMap = useRef(null)
@@ -217,18 +221,34 @@ export default function FindPage() {
 
   async function runSearch(save = false) {
     if (!query.trim()) return
+    
+    if (abortControllerRef.current) abortControllerRef.current.abort()
+    abortControllerRef.current = new AbortController()
+
     addToHistory(query)
     setLoading(true)
+    setCurrentPage(1)
     try {
       const res = await fetch('/api/scrape', { 
         method: 'POST', 
         body: JSON.stringify({ query, save }), 
-        headers: { 'Content-Type': 'application/json' } 
+        headers: { 'Content-Type': 'application/json' },
+        signal: abortControllerRef.current.signal
       })
       const data = await res.json()
+      if (data.error) {
+        toast.error(`Scrape Error: ${data.error.message || data.error}`)
+        return
+      }
       const finalItems = data.saved ? data.saved : data.data || []
       setResults(finalItems)
       updateMapMarkers(finalItems)
+    } catch (err) {
+      if (err.name === 'AbortError') {
+        toast.info('Search cancelled')
+      } else {
+        toast.error('Search failed. Please try again.')
+      }
     } finally {
       setLoading(false)
     }
@@ -236,14 +256,21 @@ export default function FindPage() {
 
   async function runPlacesSearch() {
     if (!query.trim()) return
+
+    if (abortControllerRef.current) abortControllerRef.current.abort()
+    abortControllerRef.current = new AbortController()
+
     addToHistory(query)
     setLoading(true)
+    setCurrentPage(1)
     try {
-      const res = await fetch(`/api/places-search?q=${encodeURIComponent(query)}`)
+      const res = await fetch(`/api/places-search?q=${encodeURIComponent(query)}`, {
+        signal: abortControllerRef.current.signal
+      })
       const data = await res.json()
       
       if (data.error) {
-        alert(`Search Error: ${data.error}`)
+        toast.error(`Search Error: ${data.error.message || data.error}`)
         return
       }
       
@@ -251,8 +278,12 @@ export default function FindPage() {
       setResults(items)
       updateMapMarkers(items)
     } catch (err) {
-      console.error('places-search error', err)
-      alert('Places search failed. Check your API Key and billing settings.')
+      if (err.name === 'AbortError') {
+        toast.info('Search cancelled')
+      } else {
+        console.error('places-search error', err)
+        toast.error('Places search failed. Check your API Key and billing settings.')
+      }
     } finally {
       setLoading(false)
     }
@@ -294,11 +325,15 @@ export default function FindPage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' } 
       })
-      if (res.ok) {
         setSavedNames(prev => [...prev, item.name])
+        toast.success(`Saved ${item.name} successfully!`)
+      } else {
+        const errorData = await res.json()
+        toast.error(`Failed to save: ${errorData.error?.message || errorData.error}`)
       }
     } catch (e) {
       console.error(e)
+      toast.error('An error occurred while saving.')
     }
   }
 
@@ -310,6 +345,10 @@ export default function FindPage() {
     if (sortBy === 'ratingDesc') return (b.rating || 0) - (a.rating || 0)
     return 0
   })
+
+  const totalPages = Math.ceil(sortedResults.length / itemsPerPage)
+  const paginatedResults = sortedResults.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)
+
   const isAllSelected = filteredResults.length > 0 && filteredResults.every(r => selectedNames.includes(r.name) || savedNames.includes(r.name))
 
   const toggleSelectAll = () => {
@@ -328,8 +367,10 @@ export default function FindPage() {
     try {
       await Promise.all(itemsToSave.map(item => saveItem(item)))
       setSelectedNames([])
+      toast.success(`Successfully saved ${itemsToSave.length} leads!`)
     } catch (e) {
       console.error(e)
+      toast.error('Failed to save selected leads.')
     } finally {
       setBulkSaving(false)
     }
@@ -427,13 +468,21 @@ export default function FindPage() {
                 </button>
               )}
             </div>
-            <button 
-              onClick={searchMethod === 'places' ? runPlacesSearch : () => runSearch(false)} 
-              disabled={loading}
-              className="btn-premium h-auto py-4 px-10 text-base"
-            >
-              {loading ? <Loader2 size={24} className="animate-spin" /> : 'Search Now'}
-            </button>
+            {loading ? (
+              <button 
+                onClick={() => abortControllerRef.current?.abort()} 
+                className="btn-premium h-auto py-4 px-10 text-base bg-rose-500 hover:bg-rose-600 shadow-rose-200"
+              >
+                <X size={24} className="mr-2 inline" /> Cancel
+              </button>
+            ) : (
+              <button 
+                onClick={searchMethod === 'places' ? runPlacesSearch : () => runSearch(false)} 
+                className="btn-premium h-auto py-4 px-10 text-base"
+              >
+                Search Now
+              </button>
+            )}
           </div>
         </div>
 
@@ -547,7 +596,7 @@ export default function FindPage() {
              </div>
           ) : results.length > 0 ? (
             <div className="animate-in">
-              {sortedResults
+              {paginatedResults
                 .map((r, idx) => (
                    <ResultRow 
                      key={idx} 
@@ -565,6 +614,33 @@ export default function FindPage() {
                    />
                 ))
               }
+              
+              {totalPages > 1 && (
+                <div className="flex items-center justify-between bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm mt-6">
+                  <p className="text-xs font-bold text-slate-500">
+                    Showing {(currentPage - 1) * itemsPerPage + 1} to {Math.min(currentPage * itemsPerPage, sortedResults.length)} of {sortedResults.length} leads
+                  </p>
+                  <div className="flex items-center gap-2">
+                    <button 
+                      onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                      disabled={currentPage === 1}
+                      className="p-2 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800 disabled:opacity-50 transition-all"
+                    >
+                      <ChevronLeft size={16} />
+                    </button>
+                    <span className="text-sm font-bold text-slate-700 dark:text-slate-300 px-2">
+                      Page {currentPage} of {totalPages}
+                    </span>
+                    <button 
+                      onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                      disabled={currentPage === totalPages}
+                      className="p-2 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800 disabled:opacity-50 transition-all"
+                    >
+                      <ChevronRight size={16} />
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
           ) : (
             <div className="flex flex-col items-center justify-center py-24 bg-gradient-to-b from-white to-slate-50/50 rounded-3xl border border-slate-200 text-slate-400 shadow-sm relative overflow-hidden group">
