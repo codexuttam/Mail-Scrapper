@@ -171,6 +171,7 @@ export default function FindPage() {
   const [savedNames, setSavedNames] = useState([])
   const [bulkSaving, setBulkSaving] = useState(false)
   const [currentPage, setCurrentPage] = useState(1)
+  const [jobProgress, setJobProgress] = useState('')
   const itemsPerPage = 20
   const abortControllerRef = useRef(null)
   
@@ -238,19 +239,69 @@ export default function FindPage() {
       const data = await res.json()
       if (data.error) {
         toast.error(`Scrape Error: ${data.error.message || data.error}`)
+        setLoading(false)
         return
       }
+
+      if (data.jobId) {
+        setJobProgress('Initializing background job...')
+        pollJobStatus(data.jobId)
+        return
+      }
+
       const finalItems = data.saved ? data.saved : data.data || []
       setResults(finalItems)
       updateMapMarkers(finalItems)
+      setLoading(false)
     } catch (err) {
       if (err.name === 'AbortError') {
         toast.info('Search cancelled')
       } else {
         toast.error('Search failed. Please try again.')
       }
-    } finally {
       setLoading(false)
+    }
+  }
+
+  const pollJobStatus = async (jobId) => {
+    try {
+      const res = await fetch(`/api/scrape/status?jobId=${jobId}`, {
+        signal: abortControllerRef.current?.signal
+      })
+      const data = await res.json()
+
+      if (data.error) {
+        toast.error(`Status Error: ${data.error.message || data.error}`)
+        setLoading(false)
+        setJobProgress('')
+        return
+      }
+
+      setJobProgress(data.progress || 'Processing...')
+
+      if (data.status === 'completed') {
+        const finalItems = data.saved && data.saved.length > 0 ? data.saved : data.results || []
+        setResults(finalItems)
+        updateMapMarkers(finalItems)
+        setLoading(false)
+        setJobProgress('')
+        toast.success('Deep scraping completed!')
+      } else if (data.status === 'failed') {
+        toast.error(`Scrape failed: ${data.error}`)
+        setLoading(false)
+        setJobProgress('')
+      } else {
+        if (!abortControllerRef.current?.signal.aborted) {
+          setTimeout(() => pollJobStatus(jobId), 3000)
+        }
+      }
+    } catch (err) {
+      if (err.name !== 'AbortError') {
+        console.error('Polling error', err)
+        if (!abortControllerRef.current?.signal.aborted) {
+          setTimeout(() => pollJobStatus(jobId), 3000)
+        }
+      }
     }
   }
 
@@ -585,10 +636,10 @@ export default function FindPage() {
                 <div className="bg-indigo-50 border border-indigo-100 rounded-2xl p-4 flex items-center gap-3 mb-4 animate-pulse">
                    <Loader2 size={20} className="text-indigo-600 animate-spin" />
                    <p className="text-sm font-bold text-indigo-700">
-                      {searchMethod === 'scrape' 
-                        ? 'Deep scraping business details & emails... this may take 15-30 seconds.' 
-                        : 'Connecting to Google Places API...'}
-                   </p>
+                    {searchMethod === 'scrape' 
+                      ? (jobProgress || 'Deep scraping business details & emails... this may take 15-30 seconds.') 
+                      : 'Connecting to Google Places API...'}
+                 </p>
                 </div>
                 {[1,2,3].map(i => (
                    <ResultSkeleton key={i} />
