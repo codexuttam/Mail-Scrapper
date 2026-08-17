@@ -2,13 +2,41 @@ import { NextResponse } from 'next/server';
 export const dynamic = 'force-dynamic';
 import { getServerSession } from "next-auth/next"
 import { authOptions } from "../auth/[...nextauth]/route"
+import { z } from 'zod';
 import connect from '../../../lib/db';
 import Lead from '../../../models/Lead';
+
+const leadCreateSchema = z.object({
+  name: z.string().optional(),
+  email: z.string().email().optional().or(z.literal('')),
+  phone: z.string().optional(),
+  address: z.string().optional(),
+  website: z.string().url().optional().or(z.literal('')),
+  source: z.string().optional(),
+  socials: z.record(z.string()).optional(),
+  summary: z.string().optional(),
+  location: z.string().optional(),
+  notes: z.string().optional(),
+}).passthrough();
+
+const leadPatchSchema = z.object({
+  id: z.string().optional(),
+  ids: z.array(z.string()).optional(),
+  updates: z.record(z.any()).optional(),
+  tagsToAdd: z.union([z.string(), z.array(z.string())]).optional()
+});
+
+const leadDeleteSchema = z.object({
+  id: z.string().optional(),
+  ids: z.array(z.string()).optional(),
+  permanent: z.boolean().optional(),
+  restore: z.boolean().optional()
+});
 
 export async function GET(req) {
   try {
     const session = await getServerSession(authOptions)
-    if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    if (!session) return NextResponse.json({ error: { code: 'UNAUTHORIZED', message: "Unauthorized" } }, { status: 401 })
 
     await connect();
     const url = new URL(req.url);
@@ -33,16 +61,21 @@ export async function GET(req) {
     return NextResponse.json({ leads, total, page, totalPages: Math.ceil(total / limit) });
   } catch (err) {
     console.error('leads GET error', err);
-    return NextResponse.json({ error: String(err) }, { status: 500 });
+    return NextResponse.json({ error: { code: 'INTERNAL_ERROR', message: String(err) } }, { status: 500 });
   }
 }
 
 export async function POST(req) {
   try {
     const session = await getServerSession(authOptions)
-    if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    if (!session) return NextResponse.json({ error: { code: 'UNAUTHORIZED', message: "Unauthorized" } }, { status: 401 })
 
-    const body = await req.json();
+    const jsonBody = await req.json();
+    const parseResult = leadCreateSchema.safeParse(jsonBody);
+    if (!parseResult.success) {
+      return NextResponse.json({ error: { code: 'VALIDATION_ERROR', message: parseResult.error.errors } }, { status: 400 });
+    }
+    const body = parseResult.data;
     if (!body.name) delete body.name; 
     await connect();
     const lead = await Lead.create({ 
@@ -53,16 +86,21 @@ export async function POST(req) {
     return NextResponse.json({ lead });
   } catch (err) {
     console.error('leads POST error', err);
-    return NextResponse.json({ error: String(err) }, { status: 500 });
+    return NextResponse.json({ error: { code: 'INTERNAL_ERROR', message: String(err) } }, { status: 500 });
   }
 }
 
 export async function PATCH(req) {
   try {
     const session = await getServerSession(authOptions)
-    if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    if (!session) return NextResponse.json({ error: { code: 'UNAUTHORIZED', message: "Unauthorized" } }, { status: 401 })
 
-    const { id, ids, updates, tagsToAdd } = await req.json();
+    const jsonBody = await req.json();
+    const parseResult = leadPatchSchema.safeParse(jsonBody);
+    if (!parseResult.success) {
+      return NextResponse.json({ error: { code: 'VALIDATION_ERROR', message: parseResult.error.errors } }, { status: 400 });
+    }
+    const { id, ids, updates, tagsToAdd } = parseResult.data;
     await connect();
 
     if (ids && Array.isArray(ids)) {
@@ -75,9 +113,9 @@ export async function PATCH(req) {
       return NextResponse.json({ ok: true });
     }
 
-    if (!id) return NextResponse.json({ error: 'Missing lead id' }, { status: 400 });
+    if (!id) return NextResponse.json({ error: { code: 'MISSING_ID', message: 'Missing lead id' } }, { status: 400 });
     const lead = await Lead.findOne({ _id: id, userEmail: session.user.email });
-    if (!lead) return NextResponse.json({ error: 'Lead not found' }, { status: 404 });
+    if (!lead) return NextResponse.json({ error: { code: 'NOT_FOUND', message: 'Lead not found' } }, { status: 404 });
 
     const newActivities = [];
     if (updates) {
@@ -108,21 +146,26 @@ export async function PATCH(req) {
     return NextResponse.json({ lead });
   } catch (err) {
     console.error('leads PATCH error', err);
-    return NextResponse.json({ error: String(err) }, { status: 500 });
+    return NextResponse.json({ error: { code: 'INTERNAL_ERROR', message: String(err) } }, { status: 500 });
   }
 }
 
 export async function DELETE(req) {
   try {
     const session = await getServerSession(authOptions)
-    if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    if (!session) return NextResponse.json({ error: { code: 'UNAUTHORIZED', message: "Unauthorized" } }, { status: 401 })
 
-    const { id, ids, permanent, restore } = await req.json();
+    const jsonBody = await req.json();
+    const parseResult = leadDeleteSchema.safeParse(jsonBody);
+    if (!parseResult.success) {
+      return NextResponse.json({ error: { code: 'VALIDATION_ERROR', message: parseResult.error.errors } }, { status: 400 });
+    }
+    const { id, ids, permanent, restore } = parseResult.data;
     await connect();
 
     const targetIds = ids || (id ? [id] : []);
     if (targetIds.length === 0) {
-      return NextResponse.json({ error: 'Missing lead id or ids' }, { status: 400 });
+      return NextResponse.json({ error: { code: 'MISSING_ID', message: 'Missing lead id or ids' } }, { status: 400 });
     }
 
     const query = { _id: { $in: targetIds }, userEmail: session.user.email };
@@ -152,6 +195,6 @@ export async function DELETE(req) {
     return NextResponse.json({ ok: true });
   } catch (err) {
     console.error('leads DELETE error', err);
-    return NextResponse.json({ error: String(err) }, { status: 500 });
+    return NextResponse.json({ error: { code: 'INTERNAL_ERROR', message: String(err) } }, { status: 500 });
   }
 }
