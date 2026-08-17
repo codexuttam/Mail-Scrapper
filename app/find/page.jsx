@@ -376,6 +376,7 @@ export default function FindPage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' } 
       })
+      if (res.ok) {
         setSavedNames(prev => [...prev, item.name])
         toast.success(`Saved ${item.name} successfully!`)
       } else {
